@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
 import { useAppData } from '@/context/AppDataContext';
+import { imageService } from '@/services/imageService';
 import {
   QrCode,
   CheckCircle2,
@@ -24,86 +25,180 @@ import {
 export default function AdminQrManagementPage() {
   const { websiteContent, updateWebsiteContent, addAuditLog } = useAppData();
 
-  const currentQr = websiteContent.qrSettings || {
-    qrCodeUrl: websiteContent.qrCodeUrl || '/images/bharathi-logo.png',
-    upiId: websiteContent.upiId || 'bharathifoundation@upi',
-    accountHolderName: websiteContent.upiName || 'BHARATHI FOUNDATION TRUST',
-    paymentInstructions:
-      'Scan the official Bharathi Foundation QR code using any UPI app (Google Pay, PhonePe, Paytm, BHIM, or Banking UPI). Keep your 12-digit UTR reference number handy to claim your instant 80G Tax Exemption receipt.',
-    isPublished: true,
-    updatedAt: new Date().toISOString(),
-  };
+  const [qrCodeUrl, setQrCodeUrl] = useState('');
+  const [upiId, setUpiId] = useState('');
+  const [accountHolderName, setAccountHolderName] = useState('');
+  const [paymentInstructions, setPaymentInstructions] = useState('');
+  const [isPublished, setIsPublished] = useState(true);
 
-  const [qrCodeUrl, setQrCodeUrl] = useState(currentQr.qrCodeUrl);
-  const [upiId, setUpiId] = useState(currentQr.upiId);
-  const [accountHolderName, setAccountHolderName] = useState(currentQr.accountHolderName);
-  const [paymentInstructions, setPaymentInstructions] = useState(currentQr.paymentInstructions);
-  const [isPublished, setIsPublished] = useState(currentQr.isPublished !== false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isLoadingSettings, setIsLoadingSettings] = useState(true);
+  const [lastSavedTime, setLastSavedTime] = useState<string>('');
 
   const [notification, setNotification] = useState<string | null>(null);
   const [fileError, setFileError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+
+  // 1. Fetch latest shared QR settings from database on mount
+  useEffect(() => {
+    let isCancelled = false;
+
+    const loadRemoteSettings = async () => {
+      try {
+        const res = await fetch('/api/qr-settings', { cache: 'no-store' });
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success && json.data && !isCancelled) {
+            const data = json.data;
+            setQrCodeUrl(data.qrCodeUrl || '');
+            setUpiId(data.upiId || '');
+            setAccountHolderName(data.accountHolderName || '');
+            setPaymentInstructions(data.paymentInstructions || '');
+            setIsPublished(data.isPublished !== false);
+            setLastSavedTime(data.updatedAt || '');
+            return;
+          }
+        }
+      } catch (err) {
+        console.warn('[Admin QR] Could not fetch remote settings, using local defaults:', err);
+      } finally {
+        if (!isCancelled) setIsLoadingSettings(false);
+      }
+
+      // Fallback to in-memory/context defaults if remote fetch returns empty
+      if (!isCancelled) {
+        const fallback = websiteContent.qrSettings || {
+          qrCodeUrl: websiteContent.qrCodeUrl || '/bharathi_logo.png',
+          upiId: websiteContent.upiId || 'bharathifoundation@upi',
+          accountHolderName: websiteContent.upiName || 'BHARATHI FOUNDATION TRUST',
+          paymentInstructions:
+            'Scan the official Bharathi Foundation QR code using any UPI app (Google Pay, PhonePe, Paytm, BHIM, or Banking UPI). Keep your 12-digit UTR reference number handy to claim your instant 80G Tax Exemption receipt.',
+          isPublished: true,
+          updatedAt: new Date().toISOString(),
+        };
+        setQrCodeUrl(fallback.qrCodeUrl || '');
+        setUpiId(fallback.upiId || '');
+        setAccountHolderName(fallback.accountHolderName || '');
+        setPaymentInstructions(fallback.paymentInstructions || '');
+        setIsPublished(fallback.isPublished !== false);
+        setLastSavedTime(fallback.updatedAt || '');
+      }
+    };
+
+    loadRemoteSettings();
+    return () => {
+      isCancelled = true;
+    };
+  }, []);
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFileError(null);
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate type: PNG, JPG, WebP
-    const validTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
-    if (!validTypes.includes(file.type)) {
-      setFileError('Invalid file format. Please upload a PNG, JPG, or WebP image.');
+    // Validate type and size using imageService
+    const validation = imageService.validateQrImage(file);
+    if (!validation.valid) {
+      setFileError(validation.error || 'Invalid file.');
       return;
     }
 
-    // Validate size: max 5MB
-    if (file.size > 5 * 1024 * 1024) {
-      setFileError('File size exceeds 5MB limit. Please upload an optimized image.');
-      return;
-    }
-
-    // Convert to Object URL (non-base64 persistent URL simulation)
+    setSelectedFile(file);
+    // Temporary preview in browser before clicking Save & Publish
     const previewUrl = URL.createObjectURL(file);
     setQrCodeUrl(previewUrl);
-    setNotification('New QR code image loaded! Click "Save & Publish QR Settings" to broadcast changes.');
+    setNotification('New QR code image selected! Click "Save & Publish QR Settings" to upload and sync to database.');
   };
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    const updatedSettings = {
-      qrCodeUrl,
-      upiId: upiId.trim(),
-      accountHolderName: accountHolderName.trim(),
-      paymentInstructions: paymentInstructions.trim(),
-      isPublished,
-      updatedAt: new Date().toISOString(),
-    };
+    setFileError(null);
+    setIsSaving(true);
+    setNotification(null);
 
-    updateWebsiteContent({
-      qrSettings: updatedSettings,
-      upiId: upiId.trim(),
-      upiName: accountHolderName.trim(),
-      qrCodeUrl,
-    });
+    let finalQrUrl = qrCodeUrl;
 
-    addAuditLog(
-      'UPDATE_UPI_QR',
-      `Admin updated official UPI QR configuration (UPI: ${upiId}, Status: ${isPublished ? 'Published' : 'Unpublished'})`
-    );
+    // 1. If a new file is staged, upload to permanent storage (never keep blob: URL)
+    if (selectedFile) {
+      const uploadRes = await imageService.uploadPersistentQrImage(selectedFile);
+      if (!uploadRes.success || !uploadRes.url) {
+        setFileError(uploadRes.error || 'Failed to upload QR image to persistent storage.');
+        setIsSaving(false);
+        return;
+      }
+      finalQrUrl = uploadRes.url;
+      setQrCodeUrl(finalQrUrl);
+      setSelectedFile(null);
+    }
 
-    setNotification('UPI QR Settings saved and synchronized with public donation pages successfully!');
-    setTimeout(() => setNotification(null), 4000);
+    // 2. Validate mandatory fields
+    if (!upiId.trim()) {
+      setFileError('Official UPI VPA ID is required.');
+      setIsSaving(false);
+      return;
+    }
+    if (!accountHolderName.trim()) {
+      setFileError('Account Holder / Trust Name is required.');
+      setIsSaving(false);
+      return;
+    }
+
+    // 3. Persist to shared database record via API
+    try {
+      const res = await fetch('/api/qr-settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          qrCodeUrl: finalQrUrl,
+          upiId: upiId.trim(),
+          accountHolderName: accountHolderName.trim(),
+          paymentInstructions: paymentInstructions.trim(),
+          isPublished,
+        }),
+      });
+
+      const json = await res.json();
+      if (!res.ok || !json.success) {
+        throw new Error(json.error || 'Failed saving QR settings to database.');
+      }
+
+      const savedData = json.data;
+      setLastSavedTime(savedData.updatedAt || new Date().toISOString());
+
+      // Update in-memory context as well
+      updateWebsiteContent({
+        qrSettings: savedData,
+        upiId: savedData.upiId,
+        upiName: savedData.accountHolderName,
+        qrCodeUrl: savedData.qrCodeUrl,
+      });
+
+      addAuditLog(
+        'UPDATE_UPI_QR',
+        `Admin saved & published official UPI QR configuration (UPI: ${upiId.trim()}, Status: ${isPublished ? 'Published' : 'Unpublished'})`
+      );
+
+      setNotification('UPI QR Settings saved and published to the shared database successfully!');
+      setTimeout(() => setNotification(null), 5000);
+    } catch (err: any) {
+      console.error('[Admin QR] Error saving QR settings:', err);
+      setFileError(err.message || 'Failed saving QR settings to database.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleResetToDefault = () => {
-    setQrCodeUrl('/images/bharathi-logo.png');
+    setSelectedFile(null);
+    setQrCodeUrl('/bharathi_logo.png');
     setUpiId('bharathifoundation@upi');
     setAccountHolderName('BHARATHI FOUNDATION TRUST');
     setPaymentInstructions(
       'Scan the official Bharathi Foundation QR code using any UPI app (Google Pay, PhonePe, Paytm, BHIM, or Banking UPI). Keep your 12-digit UTR reference number handy to claim your instant 80G Tax Exemption receipt.'
     );
     setIsPublished(true);
-    setNotification('Reset to Bharathi Foundation official defaults. Click Save to persist.');
+    setNotification('Reset to Bharathi Foundation official defaults. Click "Save & Publish QR Settings" to persist.');
   };
 
   const handleCopyUpi = () => {
@@ -149,7 +244,7 @@ export default function AdminQrManagementPage() {
               </span>
             </h3>
             <p className="text-xs text-brand-muted">
-              Last modified: {new Date(currentQr.updatedAt || new Date()).toLocaleString()}
+              Last modified: {lastSavedTime ? new Date(lastSavedTime).toLocaleString() : 'Not published yet'}
             </p>
           </div>
         </div>
@@ -328,7 +423,10 @@ export default function AdminQrManagementPage() {
             <div className="pt-4 border-t border-brand-border/60 flex items-center justify-between">
               <button
                 type="button"
-                onClick={() => setQrCodeUrl('')}
+                onClick={() => {
+                  setSelectedFile(null);
+                  setQrCodeUrl('');
+                }}
                 className="text-xs font-bold text-red-600 hover:text-red-800 flex items-center gap-1"
               >
                 <Trash2 className="w-3.5 h-3.5" />
@@ -337,10 +435,11 @@ export default function AdminQrManagementPage() {
 
               <button
                 type="submit"
-                className="px-6 py-3 bg-brand-primary hover:bg-brand-primaryDark text-white text-xs font-bold rounded-xl transition-all shadow-md flex items-center gap-2 cursor-pointer"
+                disabled={isSaving}
+                className="px-6 py-3 bg-brand-primary hover:bg-brand-primaryDark disabled:opacity-50 text-white text-xs font-bold rounded-xl transition-all shadow-md flex items-center gap-2 cursor-pointer"
               >
-                <Save className="w-4 h-4" />
-                <span>Save & Publish QR Settings</span>
+                {isSaving ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                <span>{isSaving ? 'Uploading & Publishing...' : 'Save & Publish QR Settings'}</span>
               </button>
             </div>
           </form>

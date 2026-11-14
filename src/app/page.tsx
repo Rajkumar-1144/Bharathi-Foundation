@@ -88,9 +88,26 @@ export default function HomePage() {
   const [donationSuccessMsg, setDonationSuccessMsg] = useState('');
   const [copiedUpi, setCopiedUpi] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
+  const [dbQrSettings, setDbQrSettings] = useState<any>(null);
 
   useEffect(() => {
     setIsMounted(true);
+
+    const fetchQr = async () => {
+      try {
+        const res = await fetch('/api/qr-settings', { cache: 'no-store' });
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success && json.data) {
+            setDbQrSettings(json.data);
+          }
+        }
+      } catch {}
+    };
+
+    fetchQr();
+    window.addEventListener('focus', fetchQr);
+    return () => window.removeEventListener('focus', fetchQr);
   }, []);
 
   // Gallery Modal
@@ -958,50 +975,71 @@ export default function HomePage() {
                   Instant UPI Donation
                 </span>
 
-                {websiteContent.qrSettings && !websiteContent.qrSettings.isPublished ? (
-                  <div className="p-6 bg-white/10 border border-amber-400/40 rounded-2xl text-center space-y-2">
-                    <p className="text-xs font-bold text-amber-300 uppercase tracking-wider">UPI Offline</p>
-                    <p className="text-xs text-purple-200">
-                      Direct online UPI donations are currently paused for scheduled reconciliation. Please check back shortly.
-                    </p>
-                  </div>
-                ) : (
-                  <>
-                    <div className="bg-white p-4 rounded-2xl w-52 h-52 mx-auto shadow-2xl flex flex-col items-center justify-center relative">
-                      <Image
-                        src={websiteContent.qrSettings?.qrCodeUrl || websiteContent.qrCodeUrl || '/bharathi_logo.png'}
-                        alt="Bharathi Foundation UPI QR"
-                        width={160}
-                        height={160}
-                        className="object-contain"
-                      />
-                      <span className="text-[10px] text-brand-primary font-bold mt-2">Scan & Pay via Any UPI App</span>
-                    </div>
-                    <div className="flex items-center justify-center gap-2">
-                      <code className="text-xs font-mono bg-white/10 px-3 py-1.5 rounded-xl border border-white/20">
-                        {websiteContent.qrSettings?.upiId || websiteContent.upiId}
-                      </code>
-                      <button
-                        type="button"
-                        onClick={handleCopyUpi}
-                        className="p-1.5 rounded-xl bg-white/20 hover:bg-white text-white hover:text-brand-primary transition-colors cursor-pointer"
-                        title="Copy UPI ID"
-                      >
-                        {copiedUpi ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
-                      </button>
-                    </div>
-                    {websiteContent.qrSettings?.accountHolderName && (
-                      <p className="text-[11px] text-purple-200">
-                        A/C: <span className="font-semibold text-white">{websiteContent.qrSettings.accountHolderName}</span>
-                      </p>
-                    )}
-                    {websiteContent.qrSettings?.paymentInstructions && (
-                      <p className="text-[11px] text-purple-300 italic max-w-xs mx-auto">
-                        {websiteContent.qrSettings.paymentInstructions}
-                      </p>
-                    )}
-                  </>
-                )}
+                {(() => {
+                  const effectiveQr = dbQrSettings !== null ? dbQrSettings : websiteContent.qrSettings;
+                  const isQrPublished = Boolean(
+                    effectiveQr &&
+                      effectiveQr.isPublished !== false &&
+                      effectiveQr.upiId?.trim() &&
+                      effectiveQr.qrCodeUrl?.trim()
+                  );
+
+                  if (!isQrPublished) {
+                    return (
+                      <div className="p-6 bg-white/10 border border-amber-400/40 rounded-2xl text-center space-y-2">
+                        <p className="text-xs font-bold text-amber-300 uppercase tracking-wider">UPI Offline</p>
+                        <p className="text-xs text-purple-200">
+                          Direct online UPI donations are currently paused for scheduled reconciliation. Please check back shortly.
+                        </p>
+                      </div>
+                    );
+                  }
+
+                  const activeQrUrl = effectiveQr?.qrCodeUrl || '';
+                  const activeUpi = effectiveQr?.upiId || '';
+                  const activeHolder = effectiveQr?.accountHolderName || '';
+                  const activeInstructions = effectiveQr?.paymentInstructions || '';
+
+                  return (
+                    <>
+                      <div className="bg-white p-4 rounded-2xl w-52 h-52 mx-auto shadow-2xl flex flex-col items-center justify-center relative">
+                        <Image
+                          src={activeQrUrl}
+                          alt="Bharathi Foundation UPI QR"
+                          width={160}
+                          height={160}
+                          className="object-contain"
+                        />
+                        <span className="text-[10px] text-brand-primary font-bold mt-2">Scan & Pay via Any UPI App</span>
+                      </div>
+                      <div className="flex items-center justify-center gap-2">
+                        <code className="text-xs font-mono bg-white/10 px-3 py-1.5 rounded-xl border border-white/20">
+                          {activeUpi}
+                        </code>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            navigator.clipboard.writeText(activeUpi);
+                            setCopiedUpi(true);
+                            setTimeout(() => setCopiedUpi(false), 2500);
+                          }}
+                          className="p-1.5 rounded-xl bg-white/20 hover:bg-white text-white hover:text-brand-primary transition-colors cursor-pointer"
+                          title="Copy UPI ID"
+                        >
+                          {copiedUpi ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                        </button>
+                      </div>
+                      {activeHolder && (
+                        <p className="text-[11px] text-purple-200">
+                          A/C: <span className="font-semibold text-white">{activeHolder}</span>
+                        </p>
+                      )}
+                      {activeInstructions && (
+                        <p className="text-[10px] text-purple-200/80 italic line-clamp-2">{activeInstructions}</p>
+                      )}
+                    </>
+                  );
+                })()}
               </div>
 
               {/* UTR Claim Submission Form */}

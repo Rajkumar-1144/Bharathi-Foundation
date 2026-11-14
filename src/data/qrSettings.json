@@ -1,0 +1,9 @@
+{
+  "id": "default",
+  "qrCodeUrl": "/bharathi_logo.png",
+  "upiId": "bharathifoundation@upi",
+  "accountHolderName": "BHARATHI FOUNDATION TRUST",
+  "paymentInstructions": "Scan the official Bharathi Foundation QR code using any UPI app (Google Pay, PhonePe, Paytm, BHIM, or Banking UPI). Keep your 12-digit UTR reference number handy to claim your instant 80G Tax Exemption receipt.",
+  "isPublished": true,
+  "updatedAt": "2026-11-14T12:00:00.000Z"
+}

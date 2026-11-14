@@ -177,7 +177,24 @@ CREATE TABLE IF NOT EXISTS public.care_homes (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 11. Enable Row Level Security (RLS)
+-- 11. UPI QR Code & Gateway Settings Table
+CREATE TABLE IF NOT EXISTS public.qr_settings (
+    id TEXT PRIMARY KEY DEFAULT 'default',
+    qr_image_url TEXT,
+    upi_id TEXT NOT NULL,
+    account_holder_name TEXT NOT NULL,
+    payment_instructions TEXT,
+    is_published BOOLEAN NOT NULL DEFAULT true,
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_by UUID REFERENCES public.users(id)
+);
+
+-- Storage bucket for persistent QR codes
+INSERT INTO storage.buckets (id, name, public) 
+VALUES ('qr-codes', 'qr-codes', true)
+ON CONFLICT (id) DO NOTHING;
+
+-- 12. Enable Row Level Security (RLS)
 ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.volunteers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.ngos ENABLE ROW LEVEL SECURITY;
@@ -186,14 +203,29 @@ ALTER TABLE public.camp_meetings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.emergency_blood_requests ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.expenditures ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.care_homes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.qr_settings ENABLE ROW LEVEL SECURITY;
 
--- 12. Realtime Publication
+-- QR Settings RLS Policies
+CREATE POLICY "Allow public read published QR settings"
+    ON public.qr_settings
+    FOR SELECT
+    USING (is_published = true OR auth.role() = 'authenticated');
+
+CREATE POLICY "Allow admin full access to QR settings"
+    ON public.qr_settings
+    FOR ALL
+    USING (
+        EXISTS (
+            SELECT 1 FROM public.users
+            WHERE users.id = auth.uid() AND users.role = 'ADMIN'
+        )
+    );
+
+-- 13. Realtime Publication
 ALTER PUBLICATION supabase_realtime ADD TABLE public.volunteers;
 ALTER PUBLICATION supabase_realtime ADD TABLE public.ngos;
 ALTER PUBLICATION supabase_realtime ADD TABLE public.donations;
 ALTER PUBLICATION supabase_realtime ADD TABLE public.camp_meetings;
 ALTER PUBLICATION supabase_realtime ADD TABLE public.emergency_blood_requests;
 ALTER PUBLICATION supabase_realtime ADD TABLE public.care_homes;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.donations;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.camp_meetings;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.emergency_blood_requests;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.qr_settings;

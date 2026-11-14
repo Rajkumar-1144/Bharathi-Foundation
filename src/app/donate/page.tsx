@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Navbar } from '@/components/common/Navbar';
@@ -26,12 +26,56 @@ export default function DonatePage() {
   const [submittedSuccess, setSubmittedSuccess] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const qrSettings = websiteContent.qrSettings;
-  const isQrPublished = qrSettings ? qrSettings.isPublished : true;
-  const activeUpiId = qrSettings?.upiId || websiteContent.upiId;
-  const activeUpiName = qrSettings?.accountHolderName || websiteContent.upiName;
-  const activeQrCodeUrl = qrSettings?.qrCodeUrl || websiteContent.qrCodeUrl || '/bharathi_logo.png';
-  const paymentInstructions = qrSettings?.paymentInstructions || 'Scan with Google Pay, PhonePe, Paytm or BHIM UPI';
+  // Synchronized QR Settings from shared database
+  const [dbQrSettings, setDbQrSettings] = useState<{
+    qrCodeUrl: string;
+    upiId: string;
+    accountHolderName: string;
+    paymentInstructions: string;
+    isPublished: boolean;
+    updatedAt?: string;
+  } | null>(null);
+
+  const fetchLatestQr = async () => {
+    try {
+      const res = await fetch('/api/qr-settings', { cache: 'no-store' });
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && json.data) {
+          setDbQrSettings(json.data);
+        }
+      }
+    } catch (err) {
+      console.warn('[Donate Page] Could not fetch remote QR settings:', err);
+    }
+  };
+
+  useEffect(() => {
+    fetchLatestQr();
+
+    // Revalidate when user navigates back to tab
+    const handleFocus = () => {
+      fetchLatestQr();
+    };
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, []);
+
+  // Determine active QR settings strictly from the shared database record
+  const effectiveQr = dbQrSettings !== null ? dbQrSettings : websiteContent.qrSettings;
+  const isQrPublished = Boolean(
+    effectiveQr &&
+      effectiveQr.isPublished !== false &&
+      effectiveQr.upiId?.trim() &&
+      effectiveQr.qrCodeUrl?.trim()
+  );
+
+  const activeUpiId = isQrPublished ? (effectiveQr?.upiId || '') : '';
+  const activeUpiName = isQrPublished ? (effectiveQr?.accountHolderName || '') : '';
+  const activeQrCodeUrl = isQrPublished ? (effectiveQr?.qrCodeUrl || '') : '';
+  const paymentInstructions = isQrPublished
+    ? (effectiveQr?.paymentInstructions || 'Scan with Google Pay, PhonePe, Paytm or BHIM UPI')
+    : '';
 
   const handleCopy = () => {
     navigator.clipboard.writeText(activeUpiId);

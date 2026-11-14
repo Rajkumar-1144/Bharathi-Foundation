@@ -46,5 +46,65 @@ export const imageService = {
       reader.readAsDataURL(file);
     });
   },
+
+  /**
+   * Validates a candidate QR image file against allowed mime types and maximum 5MB size limit.
+   */
+  validateQrImage(file: File): { valid: boolean; error?: string } {
+    const validTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
+    if (!validTypes.includes(file.type)) {
+      return {
+        valid: false,
+        error: 'Invalid file format. Please upload a PNG, JPG, or WebP image.',
+      };
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      return {
+        valid: false,
+        error: 'File size exceeds 5MB limit. Please upload an optimized scannable image.',
+      };
+    }
+    return { valid: true };
+  },
+
+  /**
+   * Uploads an image to permanent shared storage (Supabase Storage / persistent public server folder).
+   * Never returns a temporary browser blob: URL.
+   */
+  async uploadPersistentQrImage(file: File): Promise<{ success: boolean; url?: string; error?: string }> {
+    const validation = this.validateQrImage(file);
+    if (!validation.valid) {
+      return { success: false, error: validation.error };
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const res = await fetch('/api/qr-settings/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        return {
+          success: false,
+          error: data.error || `Upload failed with status code ${res.status}`,
+        };
+      }
+
+      return {
+        success: true,
+        url: data.url,
+      };
+    } catch (err: any) {
+      console.error('[imageService] Upload exception:', err);
+      return {
+        success: false,
+        error: err?.message || 'Network error occurred while uploading QR image to permanent storage.',
+      };
+    }
+  },
 };
 
