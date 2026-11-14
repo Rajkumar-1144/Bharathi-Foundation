@@ -4,6 +4,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { User, UserRole, VerificationStatus } from '@/types';
 import { storageService, STORAGE_KEYS } from '@/services/storageService';
+import { INITIAL_USERS, INITIAL_VOLUNTEERS, INITIAL_NGOS } from '@/data/initialData';
 
 interface AuthContextType {
   currentUser: User | null;
@@ -68,7 +69,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     selectedRole?: UserRole
   ): Promise<{ success: boolean; message: string; redirectUrl?: string }> => {
     const trimmedEmail = email.trim().toLowerCase();
-    const users = storageService.getItem<User[]>(STORAGE_KEYS.USERS, []);
+    let users = storageService.getItem<User[]>(STORAGE_KEYS.USERS, INITIAL_USERS);
+    if (!users || users.length === 0) {
+      users = INITIAL_USERS;
+      storageService.setItem(STORAGE_KEYS.USERS, INITIAL_USERS);
+    }
 
     // Check demo password or default registered user password check
     const demoPassword = DEMO_PASSWORDS[trimmedEmail];
@@ -80,7 +85,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return { success: false, message: 'Invalid password. Please check your credentials.' };
     }
 
-    const matchedUser = users.find((u) => u.email.toLowerCase() === trimmedEmail);
+    let matchedUser = users.find((u) => u.email.toLowerCase() === trimmedEmail);
+
+    // Fallback: If not found in current users list, check INITIAL_USERS
+    if (!matchedUser) {
+      matchedUser = INITIAL_USERS.find((u) => u.email.toLowerCase() === trimmedEmail);
+      if (matchedUser) {
+        users = [...users, matchedUser];
+        storageService.setItem(STORAGE_KEYS.USERS, users);
+      }
+    }
 
     if (!matchedUser) {
       return { success: false, message: 'Account not found. Please register or check your email address.' };
@@ -95,7 +109,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // Role-based status check
     if (matchedUser.role === 'VOLUNTEER') {
-      const volunteers = storageService.getItem<any[]>(STORAGE_KEYS.VOLUNTEERS, []);
+      const volunteers = storageService.getItem<any[]>(STORAGE_KEYS.VOLUNTEERS, INITIAL_VOLUNTEERS);
       const vol = volunteers.find((v) => v.email.toLowerCase() === trimmedEmail || v.userId === matchedUser.id);
       const effectiveStatus = vol?.status || matchedUser.status;
 
@@ -126,7 +140,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     if (matchedUser.role === 'NGO') {
-      const ngos = storageService.getItem<any[]>(STORAGE_KEYS.NGOS, []);
+      const ngos = storageService.getItem<any[]>(STORAGE_KEYS.NGOS, INITIAL_NGOS);
       const ngo = ngos.find((n) => n.email.toLowerCase() === trimmedEmail || n.userId === matchedUser.id);
       const effectiveStatus = ngo?.status || matchedUser.status;
 

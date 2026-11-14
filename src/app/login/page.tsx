@@ -17,7 +17,6 @@ import {
   Clock,
   HelpCircle,
   X,
-  Sparkles,
 } from 'lucide-react';
 
 function LoginFormContent() {
@@ -98,13 +97,6 @@ function LoginFormContent() {
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  // Quick fill helper for reviewers
-  const handleQuickFill = (demoEmail: string, demoPass: string) => {
-    setEmail(demoEmail);
-    setPassword(demoPass);
-    setErrorMsg('');
   };
 
   return (
@@ -242,53 +234,6 @@ function LoginFormContent() {
             ← Return to Public Homepage
           </Link>
         </div>
-      </div>
-
-      {/* Quick Demo Test Accounts Drawer / Helper */}
-      <div className="mt-6 pt-5 border-t border-brand-border/40">
-        <details className="group">
-          <summary className="text-[11px] font-bold text-brand-muted/80 uppercase tracking-wider cursor-pointer list-none flex items-center justify-between hover:text-brand-primary">
-            <span className="flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-brand-secondary" />
-              Quick Demo Logins (Click to autofill)
-            </span>
-            <span className="text-[10px] text-brand-primary group-open:rotate-180 transition-transform">▼</span>
-          </summary>
-          <div className="grid grid-cols-2 gap-2 mt-3 pt-2">
-            <button
-              type="button"
-              onClick={() => handleQuickFill('admin@bharathifoundation.org', 'Admin@123')}
-              className="text-left p-2.5 rounded-xl border border-brand-border/70 hover:border-brand-primary/50 bg-brand-bgLight/40 hover:bg-brand-bgLight text-xs transition-all"
-            >
-              <span className="font-bold text-brand-primary block text-[11px]">Admin</span>
-              <span className="text-[10px] text-brand-muted truncate block">admin@bharathi...</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => handleQuickFill('ngo@bharathifoundation.org', 'Ngo@123')}
-              className="text-left p-2.5 rounded-xl border border-brand-border/70 hover:border-brand-primary/50 bg-brand-bgLight/40 hover:bg-brand-bgLight text-xs transition-all"
-            >
-              <span className="font-bold text-brand-primary block text-[11px]">NGO Partner</span>
-              <span className="text-[10px] text-brand-muted truncate block">ngo@bharathi...</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => handleQuickFill('volunteer@bharathifoundation.org', 'Volunteer@123')}
-              className="text-left p-2.5 rounded-xl border border-brand-border/70 hover:border-brand-primary/50 bg-brand-bgLight/40 hover:bg-brand-bgLight text-xs transition-all"
-            >
-              <span className="font-bold text-brand-primary block text-[11px]">Volunteer</span>
-              <span className="text-[10px] text-brand-muted truncate block">volunteer@bharathi...</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => handleQuickFill('donor@bharathifoundation.org', 'Donor@123')}
-              className="text-left p-2.5 rounded-xl border border-brand-border/70 hover:border-brand-primary/50 bg-brand-bgLight/40 hover:bg-brand-bgLight text-xs transition-all"
-            >
-              <span className="font-bold text-brand-primary block text-[11px]">Donor</span>
-              <span className="text-[10px] text-brand-muted truncate block">donor@bharathi...</span>
-            </button>
-          </div>
-        </details>
       </div>
 
       {/* Forgot Password Modal */}

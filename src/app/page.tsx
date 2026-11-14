@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Navbar } from '@/components/common/Navbar';
@@ -87,6 +87,11 @@ export default function HomePage() {
   const [otherDonationPurpose, setOtherDonationPurpose] = useState('');
   const [donationSuccessMsg, setDonationSuccessMsg] = useState('');
   const [copiedUpi, setCopiedUpi] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   // Gallery Modal
   const [activePhoto, setActivePhoto] = useState<any | null>(null);
@@ -343,7 +348,7 @@ export default function HomePage() {
       {/* ========================================================================= */}
       {/* 2. DYNAMIC IMPACT STATISTICS (6 Required Dynamic Stats + Reach Metric)    */}
       {/* ========================================================================= */}
-      <section className="relative z-20 -mt-10 sm:-mt-14 max-w-7xl 2xl:max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-12 w-full">
+      <section className="relative z-20 -mt-10 sm:-mt-14 max-w-7xl 2xl:max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-12 w-full" suppressHydrationWarning>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 sm:gap-5">
           {/* Stat 1: Lives Impacted */}
           <div className="p-6 rounded-3xl bg-white border border-brand-border shadow-xl hover:shadow-2xl transition-all hover:-translate-y-1 group">
@@ -355,7 +360,7 @@ export default function HomePage() {
                 <Heart className="w-5 h-5 fill-current" />
               </div>
             </div>
-            <p className="text-3xl font-black text-brand-primaryDark tracking-tight">
+            <p className="text-3xl font-black text-brand-primaryDark tracking-tight" suppressHydrationWarning>
               {computedStats.formatStatValue(computedStats.livesImpacted, statsConfig?.livesImpacted?.format)}
             </p>
             <p className="text-[11px] text-brand-muted mt-1.5 font-medium line-clamp-2">
@@ -373,7 +378,7 @@ export default function HomePage() {
                 <Users className="w-5 h-5" />
               </div>
             </div>
-            <p className="text-3xl font-black text-brand-secondaryDark tracking-tight">
+            <p className="text-3xl font-black text-brand-secondaryDark tracking-tight" suppressHydrationWarning>
               {computedStats.formatStatValue(computedStats.activeVolunteers, statsConfig?.activeVolunteers?.format)}
             </p>
             <p className="text-[11px] text-brand-muted mt-1.5 font-medium line-clamp-2">
@@ -391,7 +396,7 @@ export default function HomePage() {
                 <Tent className="w-5 h-5" />
               </div>
             </div>
-            <p className="text-3xl font-black text-brand-primary tracking-tight">
+            <p className="text-3xl font-black text-brand-primary tracking-tight" suppressHydrationWarning>
               {computedStats.formatStatValue(computedStats.campsCount, statsConfig?.campsCount?.format)}
             </p>
             <p className="text-[11px] text-brand-muted mt-1.5 font-medium line-clamp-2">
@@ -409,7 +414,7 @@ export default function HomePage() {
                 <Award className="w-5 h-5" />
               </div>
             </div>
-            <p className="text-3xl font-black text-emerald-600 tracking-tight">
+            <p className="text-3xl font-black text-emerald-600 tracking-tight" suppressHydrationWarning>
               {computedStats.welfareRaised >= 10000000
                 ? `₹${(computedStats.welfareRaised / 10000000).toFixed(1)} Cr+`
                 : computedStats.welfareRaised >= 100000
@@ -431,7 +436,7 @@ export default function HomePage() {
                 <UserCheck className="w-5 h-5" />
               </div>
             </div>
-            <p className="text-3xl font-black text-amber-600 tracking-tight">
+            <p className="text-3xl font-black text-amber-600 tracking-tight" suppressHydrationWarning>
               {computedStats.formatStatValue(computedStats.communityMembers, statsConfig?.communityMembers?.format)}
             </p>
             <p className="text-[11px] text-brand-muted mt-1.5 font-medium line-clamp-2">
@@ -449,7 +454,7 @@ export default function HomePage() {
                 <Globe className="w-5 h-5" />
               </div>
             </div>
-            <p className="text-3xl font-black text-brand-primaryDark tracking-tight">
+            <p className="text-3xl font-black text-brand-primaryDark tracking-tight" suppressHydrationWarning>
               {computedStats.formatStatValue(computedStats.connectedReach, statsConfig?.connectedReach?.format)}
             </p>
             <p className="text-[11px] text-brand-muted mt-1.5 font-medium line-clamp-2">
