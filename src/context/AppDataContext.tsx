@@ -31,6 +31,7 @@ import {
 } from '@/types';
 import { storageService, STORAGE_KEYS } from '@/services/storageService';
 import {
+  INITIAL_USERS,
   INITIAL_NGOS,
   INITIAL_VOLUNTEERS,
   INITIAL_DONORS,
@@ -814,28 +815,100 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
   });
   const registeredCommunityMembersCount = uniqueMemberIdentities.size || usersList.length;
 
-  // People Connected: unique individuals across Admin, NGO, Volunteer, and Donor records using shared person identities
-  // Avoid counting duplicate logins, multiple sessions, or multi-role accounts for the same person
-  const uniquePeopleIdentities = new Set<string>();
-  const addPersonIdentity = (email?: string, phone?: string, name?: string) => {
+  // People Connected to Bharathi Foundation:
+  // Strictly count genuine, verified, unique registered individuals.
+  // Exclude demo records, seed data, deleted accounts, unverified registrations, and care home inmate counts.
+  // Deduplicate individuals across multiple roles using normalized identifiers (email / phone / name).
+  const SEED_USER_IDS = new Set((INITIAL_USERS || []).map((u) => u.id));
+  const SEED_VOLUNTEER_IDS = new Set((INITIAL_VOLUNTEERS || []).map((v) => v.id));
+  const SEED_NGO_IDS = new Set((INITIAL_NGOS || []).map((n) => n.id));
+  const SEED_DONOR_IDS = new Set((INITIAL_DONORS || []).map((d) => d.id));
+  const SEED_BLOOD_DONOR_IDS = new Set((INITIAL_BLOOD_DONORS || []).map((b) => b.id));
+
+  const SEED_EMAILS = new Set([
+    ...(INITIAL_USERS || []).map((u) => u.email.toLowerCase().trim()),
+    ...(INITIAL_VOLUNTEERS || []).map((v) => v.email.toLowerCase().trim()),
+    ...(INITIAL_NGOS || []).map((n) => (n.email || '').toLowerCase().trim()).filter(Boolean),
+    ...(INITIAL_DONORS || []).map((d) => d.email.toLowerCase().trim()),
+    ...(INITIAL_BLOOD_DONORS || []).map((b) => b.email.toLowerCase().trim()),
+  ]);
+
+  const isDemoOrSeedIdentity = (id?: string, email?: string): boolean => {
+    if (id && (SEED_USER_IDS.has(id) || SEED_VOLUNTEER_IDS.has(id) || SEED_NGO_IDS.has(id) || SEED_DONOR_IDS.has(id) || SEED_BLOOD_DONOR_IDS.has(id))) {
+      return true;
+    }
+    if (email) {
+      const norm = email.toLowerCase().trim();
+      if (SEED_EMAILS.has(norm)) return true;
+      if (
+        norm.endsWith('@bharathifoundation.org') &&
+        (norm.startsWith('admin') ||
+          norm.startsWith('ngo') ||
+          norm.startsWith('volunteer') ||
+          norm.startsWith('donor') ||
+          norm.startsWith('demo') ||
+          norm.startsWith('test'))
+      ) {
+        return true;
+      }
+    }
+    return false;
+  };
+
+  const uniqueVerifiedPeople = new Set<string>();
+
+  const addGenuinePersonIdentity = (id?: string, email?: string, phone?: string, name?: string) => {
+    if (isDemoOrSeedIdentity(id, email)) return;
+
     const normEmail = email?.toLowerCase().trim();
-    const normPhone = phone?.replace(/\D/g, '').slice(-10);
-    if (normEmail) {
-      uniquePeopleIdentities.add(`email:${normEmail}`);
-    } else if (normPhone && normPhone.length === 10) {
-      uniquePeopleIdentities.add(`phone:${normPhone}`);
-    } else if (name) {
-      uniquePeopleIdentities.add(`name:${name.toLowerCase().trim()}`);
+    const cleanPhone = phone?.replace(/\D/g, '').slice(-10);
+
+    // Primary unique identifier: Verified Email Address
+    if (normEmail && normEmail.includes('@') && !normEmail.includes('example.com') && !normEmail.includes('placeholder')) {
+      uniqueVerifiedPeople.add(`email:${normEmail}`);
+      return;
+    }
+
+    // Secondary unique identifier: 10-digit Mobile Phone
+    if (cleanPhone && cleanPhone.length === 10 && cleanPhone !== '0000000000' && cleanPhone !== '9876543210') {
+      uniqueVerifiedPeople.add(`phone:${cleanPhone}`);
+      return;
+    }
+
+    // Fallback: Real Full Name (only if non-generic and at least 3 characters)
+    if (name && name.trim().length >= 3 && !name.toLowerCase().includes('demo') && !name.toLowerCase().includes('test')) {
+      uniqueVerifiedPeople.add(`name:${name.toLowerCase().trim()}`);
     }
   };
 
-  usersList.forEach((u) => addPersonIdentity(u.email, undefined, u.name));
-  volunteers.filter((v) => v.status === 'APPROVED').forEach((v) => addPersonIdentity(v.email, v.phone, v.name));
-  ngos.filter((n) => n.status === 'APPROVED').forEach((n) => addPersonIdentity(undefined, n.phone, n.contactPerson));
-  donors.forEach((d) => addPersonIdentity(d.email, d.phone, d.name));
-  bloodDonors.filter((b) => b.isAvailable).forEach((b) => addPersonIdentity(b.email, b.phone, b.name));
+  // 1. Genuine Approved Registered Users (exclude demo & unverified)
+  usersList
+    .filter((u) => u.status === 'APPROVED' && !isDemoOrSeedIdentity(u.id, u.email))
+    .forEach((u) => addGenuinePersonIdentity(u.id, u.email, u.phone, u.name));
 
-  const calculatedReach = uniquePeopleIdentities.size + careHomeInmatesCount;
+  // 2. Genuine Approved Ground Volunteers (exclude demo, unverified, rejected, inactive)
+  volunteers
+    .filter((v) => v.status === 'APPROVED' && (v as any).isActive !== false && !isDemoOrSeedIdentity(v.id, v.email))
+    .forEach((v) => addGenuinePersonIdentity(v.id, v.email, v.phone, v.name));
+
+  // 3. Genuine Approved NGOs (exclude demo, pending, rejected)
+  ngos
+    .filter((n) => n.status === 'APPROVED' && !isDemoOrSeedIdentity(n.id, n.email))
+    .forEach((n) => addGenuinePersonIdentity(n.id, n.email, n.phone, n.contactPerson || n.name));
+
+  // 4. Genuine Donors with verified contributions (exclude demo)
+  donations
+    .filter((d) => d.status === 'VERIFIED')
+    .forEach((d) => addGenuinePersonIdentity(d.id, d.donorEmail, d.donorPhone, d.donorName));
+
+  // 5. Genuine Available Blood Donors (exclude demo)
+  bloodDonors
+    .filter((b) => b.isAvailable && !isDemoOrSeedIdentity(b.id, b.email))
+    .forEach((b) => addGenuinePersonIdentity(b.id, b.email, b.phone, b.name));
+
+  // DO NOT add careHomeInmatesCount (care home inmate capacities are not registered platform individuals)
+  // DO NOT add arbitrary baselines. If no verified genuine registered individuals exist yet, display 0.
+  const calculatedReach = uniqueVerifiedPeople.size;
 
   // Display threshold formatting function (never invent numbers, accurately display counts)
   const formatStatValue = (val: number, format = 'AUTO'): string => {

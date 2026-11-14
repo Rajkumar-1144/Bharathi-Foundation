@@ -444,11 +444,11 @@ export default function HomePage() {
             </p>
           </div>
 
-          {/* Stat 6: People Connected (New Community Reach Metric) */}
+          {/* Stat 6: People Connected (Community Reach Metric) */}
           <div className="p-6 rounded-3xl bg-gradient-to-br from-purple-50 to-white border-2 border-brand-secondary/40 shadow-xl hover:shadow-2xl transition-all hover:-translate-y-1 group">
             <div className="flex items-center justify-between mb-3">
               <span className="text-[11px] font-black uppercase tracking-wider text-brand-secondaryDark">
-                {statsConfig?.connectedReach?.label || 'People Connected'}
+                {statsConfig?.connectedReach?.label || 'People Connected to Bharathi Foundation'}
               </span>
               <div className="w-10 h-10 rounded-2xl bg-purple-600 text-white flex items-center justify-center group-hover:scale-110 transition-transform shadow-xs">
                 <Globe className="w-5 h-5" />
@@ -458,7 +458,7 @@ export default function HomePage() {
               {computedStats.formatStatValue(computedStats.connectedReach, statsConfig?.connectedReach?.format)}
             </p>
             <p className="text-[11px] text-brand-muted mt-1.5 font-medium line-clamp-2">
-              Combined reach across donors, volunteers & care homes
+              Verified unique individuals across volunteers, NGOs & donors
             </p>
           </div>
         </div>
