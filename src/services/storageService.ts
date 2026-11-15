@@ -54,6 +54,7 @@ export const STORAGE_KEYS = {
   CARE_HOMES: 'bf_care_homes',
   CARE_HOME_EVENTS: 'bf_care_home_events',
   CARE_HOME_CAMPAIGNS: 'bf_care_home_campaigns',
+  PASSWORD_RESETS: 'bf_password_resets',
 };
 
 const isBrowser = () => typeof window !== 'undefined';

@@ -37,7 +37,9 @@ export default function VolunteerProfilePage() {
   const [pincode, setPincode] = useState(currentVol?.pincode || '');
   const [availability, setAvailability] = useState(currentVol?.availability || 'Weekends');
   const [experience, setExperience] = useState(currentVol?.experience || 'Fresher (No Experience)');
+  const [experienceOrg, setExperienceOrg] = useState(currentVol?.experienceOrg || '');
   const [skills, setSkills] = useState(currentVol?.skills?.join(', ') || '');
+  const [otherSkills, setOtherSkills] = useState(currentVol?.otherSkills || '');
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
@@ -49,7 +51,9 @@ export default function VolunteerProfilePage() {
       setPincode(currentVol.pincode || '');
       setAvailability(currentVol.availability || 'Weekends');
       setExperience(currentVol.experience || 'Fresher (No Experience)');
+      setExperienceOrg(currentVol.experienceOrg || '');
       setSkills(currentVol.skills?.join(', ') || '');
+      setOtherSkills(currentVol.otherSkills || '');
     }
   }, [currentVol]);
 
@@ -67,7 +71,9 @@ export default function VolunteerProfilePage() {
       pincode,
       availability,
       experience,
-      skills: skills.split(',').map((s) => s.trim()),
+      experienceOrg: experience !== 'Fresher (No Experience)' ? experienceOrg.trim() : '',
+      otherSkills: otherSkills.trim(),
+      skills: skills.split(',').map((s) => s.trim()).filter(Boolean),
     });
 
     setSaved(true);
@@ -290,6 +296,22 @@ export default function VolunteerProfilePage() {
               </div>
             </div>
 
+            {/* Experience Location / Organization */}
+            {experience && experience !== 'Fresher (No Experience)' && (
+              <div className="p-3.5 rounded-2xl bg-purple-50/60 border border-purple-200/80 animate-in fade-in slide-in-from-top-1">
+                <label className="block text-xs font-bold text-brand-primaryDark mb-1">
+                  Where did you gain this experience? (Organization/Company/NGO)
+                </label>
+                <input
+                  type="text"
+                  placeholder="Enter organization, company, NGO or institution name"
+                  value={experienceOrg}
+                  onChange={(e) => setExperienceOrg(e.target.value)}
+                  className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-brand-border bg-white focus:ring-2 focus:ring-brand-primary focus:outline-hidden"
+                />
+              </div>
+            )}
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-bold text-brand-text mb-1">Availability Schedule</label>
@@ -336,6 +358,19 @@ export default function VolunteerProfilePage() {
                 type="text"
                 value={skills}
                 onChange={(e) => setSkills(e.target.value)}
+                className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-brand-border focus:ring-2 focus:ring-brand-primary focus:outline-hidden"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-brand-text mb-1">
+                Custom / Other Skills Specified
+              </label>
+              <input
+                type="text"
+                placeholder="Enter additional or custom skills..."
+                value={otherSkills}
+                onChange={(e) => setOtherSkills(e.target.value)}
                 className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-brand-border focus:ring-2 focus:ring-brand-primary focus:outline-hidden"
               />
             </div>

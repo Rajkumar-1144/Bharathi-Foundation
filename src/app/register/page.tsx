@@ -30,6 +30,7 @@ const VOLUNTEER_SKILL_OPTIONS = [
   'Food Preparation & Distribution',
   'Blood Drive Mobilization',
   'IT & Graphic Design',
+  'Others',
 ];
 
 const VOLUNTEER_INTEREST_OPTIONS = [
@@ -74,6 +75,8 @@ export default function RegisterPage() {
   ]);
   const [availability, setAvailability] = useState('Weekends');
   const [experience, setExperience] = useState('Fresher (No Experience)');
+  const [experienceOrg, setExperienceOrg] = useState('');
+  const [otherSkills, setOtherSkills] = useState('');
   const [profilePhoto, setProfilePhoto] = useState<string>('');
   const [profilePhotoName, setProfilePhotoName] = useState<string>('');
   const [termsAccepted, setTermsAccepted] = useState(false);
@@ -167,6 +170,29 @@ export default function RegisterPage() {
         setIsSubmitting(false);
         return;
       }
+      if (experience !== 'Fresher (No Experience)' && !experienceOrg.trim()) {
+        setErrorMsg('Please specify where you gained your volunteering experience (organization, company, NGO or institution name).');
+        setIsSubmitting(false);
+        return;
+      }
+      if (selectedSkills.includes('Others') && !otherSkills.trim()) {
+        setErrorMsg('Please specify your other skills in the provided text field.');
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Combine predefined skills with specified other skills
+      const customSkillsList = otherSkills
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean);
+      const combinedSkills = Array.from(
+        new Set([
+          ...selectedSkills.filter((s) => s !== 'Others'),
+          ...(customSkillsList.length > 0 ? customSkillsList : selectedSkills.includes('Others') ? ['Custom Skills'] : []),
+        ])
+      );
+
       extraData = {
         dob,
         gender,
@@ -175,10 +201,12 @@ export default function RegisterPage() {
         state: state || 'Karnataka',
         pincode: pincode || '560001',
         bloodGroup,
-        skills: selectedSkills.length > 0 ? selectedSkills : ['General Volunteer Support'],
+        skills: combinedSkills.length > 0 ? combinedSkills : ['General Volunteer Support'],
+        otherSkills: otherSkills.trim(),
         areasOfInterest: selectedInterests,
         availability,
         experience,
+        experienceOrg: experience !== 'Fresher (No Experience)' ? experienceOrg.trim() : '',
         profilePhoto: profilePhoto || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=256',
       };
     } else if (selectedRole === 'DONOR') {
@@ -519,6 +547,23 @@ export default function RegisterPage() {
                   </div>
                 </div>
 
+                {/* Where did you gain this experience? (Required when experience is not Fresher) */}
+                {experience && experience !== 'Fresher (No Experience)' && (
+                  <div className="p-3.5 rounded-2xl bg-purple-50/60 border border-purple-200/80 animate-in fade-in slide-in-from-top-1">
+                    <label className="block text-xs font-bold text-brand-primaryDark mb-1">
+                      Where did you gain this experience? <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="Enter organization, company, NGO or institution name"
+                      value={experienceOrg}
+                      onChange={(e) => setExperienceOrg(e.target.value)}
+                      className="w-full px-3.5 py-2 text-sm rounded-xl border border-brand-border bg-white focus:ring-2 focus:ring-brand-primary focus:outline-hidden"
+                    />
+                  </div>
+                )}
+
                 {/* Profile Photo Upload */}
                 <div>
                   <label className="block text-xs font-bold text-brand-text mb-1">
@@ -579,6 +624,23 @@ export default function RegisterPage() {
                       );
                     })}
                   </div>
+
+                  {/* Others custom skills input */}
+                  {selectedSkills.includes('Others') && (
+                    <div className="mt-3 p-3.5 rounded-2xl bg-purple-50/60 border border-purple-200/80 animate-in fade-in slide-in-from-top-1">
+                      <label className="block text-xs font-bold text-brand-primaryDark mb-1">
+                        Please specify your other skills <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="Enter your skills..."
+                        value={otherSkills}
+                        onChange={(e) => setOtherSkills(e.target.value)}
+                        className="w-full px-3.5 py-2 text-sm rounded-xl border border-brand-border bg-white focus:ring-2 focus:ring-brand-primary focus:outline-hidden"
+                      />
+                    </div>
+                  )}
                 </div>
 
                 {/* Areas of Interest Multi-Selection */}

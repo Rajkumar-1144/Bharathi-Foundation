@@ -127,9 +127,16 @@ export default function AdminVolunteersPage() {
       header: 'Experience',
       accessorKey: 'experience',
       cell: (row) => (
-        <span className="inline-block px-2.5 py-1 rounded-full text-[11px] font-bold bg-purple-50 text-brand-primaryDark border border-purple-200">
-          {row.experience || 'Fresher (No Experience)'}
-        </span>
+        <div>
+          <span className="inline-block px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-purple-50 text-brand-primaryDark border border-purple-200">
+            {row.experience || 'Fresher (No Experience)'}
+          </span>
+          {row.experienceOrg && (
+            <p className="text-[10px] text-brand-muted mt-0.5 font-medium truncate max-w-[150px]" title={row.experienceOrg}>
+              at {row.experienceOrg}
+            </p>
+          )}
+        </div>
       ),
     },
     {
@@ -299,6 +306,7 @@ export default function AdminVolunteersPage() {
                       <div className="flex flex-wrap items-center gap-1.5 mt-2">
                         <span className="bg-purple-50 text-brand-primaryDark border border-purple-200 text-[10px] font-bold px-2 py-0.5 rounded">
                           Exp: {vol.experience || 'Fresher (No Experience)'}
+                          {vol.experienceOrg ? ` (${vol.experienceOrg})` : ''}
                         </span>
                         {vol.skills?.slice(0, 2).map((s, i) => (
                           <span
@@ -308,6 +316,11 @@ export default function AdminVolunteersPage() {
                             {s}
                           </span>
                         ))}
+                        {vol.otherSkills && (
+                          <span className="bg-purple-100 text-purple-800 text-[10px] font-bold px-2 py-0.5 rounded">
+                            +{vol.otherSkills}
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -445,6 +458,11 @@ export default function AdminVolunteersPage() {
                 <span className="font-bold text-brand-primaryDark block mt-0.5">
                   {selectedVol.experience || 'Fresher (No Experience)'}
                 </span>
+                {selectedVol.experienceOrg && (
+                  <span className="text-[11px] text-brand-muted block mt-0.5">
+                    at <strong className="text-brand-text">{selectedVol.experienceOrg}</strong>
+                  </span>
+                )}
               </div>
               <div className="p-3 bg-white rounded-xl border border-brand-border">
                 <span className="text-brand-muted block font-medium">Availability</span>
@@ -481,6 +499,11 @@ export default function AdminVolunteersPage() {
                     {s}
                   </span>
                 ))}
+                {selectedVol.otherSkills && (
+                  <span className="bg-purple-100 text-purple-800 text-xs font-bold px-2.5 py-1 rounded-lg border border-purple-200">
+                    Custom Skills: {selectedVol.otherSkills}
+                  </span>
+                )}
               </div>
             </div>
 

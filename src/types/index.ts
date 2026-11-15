@@ -73,6 +73,8 @@ export interface Volunteer {
   availability: string;
   hoursServed: number;
   experience?: string;
+  experienceOrg?: string;
+  otherSkills?: string;
   status: VerificationStatus;
   rejectionReason?: string;
   certificatesCount: number;
@@ -426,5 +428,18 @@ export interface ExpenditureRecord {
 }
 
 export type Language = 'en' | 'te';
+
+export interface PasswordResetToken {
+  id: string;
+  token: string;
+  userId: string;
+  email: string;
+  name: string;
+  role: UserRole;
+  createdAt: string;
+  expiresAt: string;
+  used: boolean;
+  usedAt?: string;
+}
 
 

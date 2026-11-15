@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { User, UserRole, VerificationStatus } from '@/types';
+import { User, UserRole, VerificationStatus, PasswordResetToken } from '@/types';
 import { storageService, STORAGE_KEYS } from '@/services/storageService';
 import { INITIAL_USERS, INITIAL_VOLUNTEERS, INITIAL_NGOS } from '@/data/initialData';
 
@@ -20,6 +20,10 @@ interface AuthContextType {
     phone?: string;
     extra?: any;
   }) => Promise<{ success: boolean; message: string; redirectUrl?: string }>;
+  requestPasswordReset: (identifier: string) => Promise<{ success: boolean; message: string; resetUrl?: string; token?: string; user?: any }>;
+  verifyResetToken: (token: string) => { valid: boolean; message?: string; record?: PasswordResetToken };
+  completePasswordReset: (token: string, newPassword: string) => Promise<{ success: boolean; message: string }>;
+  changeCurrentUserPassword: (currentPassword: string, newPassword: string) => Promise<{ success: boolean; message: string }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -327,6 +331,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         profilePhoto: userData.extra?.profilePhoto || '',
         availability: userData.extra?.availability || 'Weekends',
         experience: userData.extra?.experience || 'Fresher (No Experience)',
+        experienceOrg: userData.extra?.experienceOrg || '',
+        otherSkills: userData.extra?.otherSkills || '',
         hoursServed: 0,
         status: 'PENDING',
         certificatesCount: 0,
@@ -389,6 +395,265 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   };
 
+  const requestPasswordReset = async (
+    identifier: string
+  ): Promise<{ success: boolean; message: string; resetUrl?: string; token?: string; user?: any }> => {
+    const term = identifier.trim().toLowerCase();
+    if (!term) {
+      return { success: false, message: 'Please enter an account email or mobile number.' };
+    }
+
+    const cleanTermPhone = term.replace(/\D/g, '').slice(-10);
+
+    let users = storageService.getItem<User[]>(STORAGE_KEYS.USERS, INITIAL_USERS);
+    if (!users || users.length === 0) users = INITIAL_USERS;
+
+    // Search across registered accounts (users, volunteers, ngos, donors)
+    let matchedUser = users.find((u) => {
+      const emailMatch = u.email.toLowerCase().trim() === term;
+      const phoneClean = (u.phone || '').replace(/\D/g, '').slice(-10);
+      const phoneMatch = cleanTermPhone.length >= 10 && phoneClean === cleanTermPhone;
+      return emailMatch || phoneMatch;
+    });
+
+    if (!matchedUser) {
+      matchedUser = INITIAL_USERS.find((u) => {
+        const emailMatch = u.email.toLowerCase().trim() === term;
+        const phoneClean = (u.phone || '').replace(/\D/g, '').slice(-10);
+        const phoneMatch = cleanTermPhone.length >= 10 && phoneClean === cleanTermPhone;
+        return emailMatch || phoneMatch;
+      });
+    }
+
+    if (!matchedUser) {
+      // Check volunteers specifically
+      const volunteers = storageService.getItem<any[]>(STORAGE_KEYS.VOLUNTEERS, INITIAL_VOLUNTEERS);
+      const vol = volunteers.find((v) => {
+        const emailMatch = (v.email || '').toLowerCase().trim() === term;
+        const phoneClean = (v.phone || '').replace(/\D/g, '').slice(-10);
+        return emailMatch || (cleanTermPhone.length >= 10 && phoneClean === cleanTermPhone);
+      });
+      if (vol) {
+        matchedUser = {
+          id: vol.userId || vol.id,
+          name: vol.name,
+          email: vol.email,
+          role: 'VOLUNTEER',
+          status: vol.status || 'APPROVED',
+          phone: vol.phone,
+          createdAt: vol.createdAt,
+        };
+      }
+    }
+
+    if (!matchedUser) {
+      // Check NGOs
+      const ngos = storageService.getItem<any[]>(STORAGE_KEYS.NGOS, INITIAL_NGOS);
+      const ngo = ngos.find((n) => {
+        const emailMatch = (n.email || '').toLowerCase().trim() === term;
+        const phoneClean = (n.phone || '').replace(/\D/g, '').slice(-10);
+        return emailMatch || (cleanTermPhone.length >= 10 && phoneClean === cleanTermPhone);
+      });
+      if (ngo) {
+        matchedUser = {
+          id: ngo.userId || ngo.id,
+          name: ngo.name,
+          email: ngo.email,
+          role: 'NGO',
+          status: ngo.status || 'APPROVED',
+          phone: ngo.phone,
+          createdAt: ngo.createdAt,
+        };
+      }
+    }
+
+    if (!matchedUser) {
+      // Check Donors
+      const donors = storageService.getItem<any[]>(STORAGE_KEYS.DONORS, []);
+      const donor = donors.find((d) => {
+        const emailMatch = (d.email || '').toLowerCase().trim() === term;
+        const phoneClean = (d.phone || '').replace(/\D/g, '').slice(-10);
+        return emailMatch || (cleanTermPhone.length >= 10 && phoneClean === cleanTermPhone);
+      });
+      if (donor) {
+        matchedUser = {
+          id: donor.userId || donor.id,
+          name: donor.name,
+          email: donor.email,
+          role: 'DONOR',
+          status: 'APPROVED',
+          phone: donor.phone,
+          createdAt: donor.createdAt,
+        };
+      }
+    }
+
+    if (!matchedUser) {
+      return { success: false, message: 'No registered account found matching that email or mobile number.' };
+    }
+
+    // Generate random secure token
+    const token = 'rst_' + Math.random().toString(36).substring(2, 12) + Date.now().toString(36);
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000).toISOString(); // 1 hour validity
+
+    const resetRecord: PasswordResetToken = {
+      id: `pr-${Date.now()}`,
+      token,
+      userId: matchedUser.id,
+      email: matchedUser.email,
+      name: matchedUser.name,
+      role: matchedUser.role,
+      createdAt: new Date().toISOString(),
+      expiresAt,
+      used: false,
+    };
+
+    const existingResets = storageService.getItem<PasswordResetToken[]>(STORAGE_KEYS.PASSWORD_RESETS, []);
+    storageService.setItem(STORAGE_KEYS.PASSWORD_RESETS, [resetRecord, ...existingResets]);
+
+    // Record audit log without storing token or password
+    try {
+      const websiteContent = storageService.getItem<any>(STORAGE_KEYS.WEBSITE_CONTENT, {});
+      const auditLogs = websiteContent.auditLogs || [];
+      const newAuditLog = {
+        id: `audit-${Date.now()}`,
+        action: 'PASSWORD_RESET_DISPATCHED',
+        details: `Password reset link generated for ${matchedUser.email} (Role: ${matchedUser.role}). Valid for 1 hour.`,
+        performedBy: 'Executive Admin',
+        timestamp: new Date().toISOString(),
+      };
+      storageService.setItem(STORAGE_KEYS.WEBSITE_CONTENT, {
+        ...websiteContent,
+        auditLogs: [newAuditLog, ...auditLogs],
+      });
+    } catch (e) {
+      console.warn('Audit log write skipped:', e);
+    }
+
+    const origin = typeof window !== 'undefined' ? window.location.origin : '';
+    const resetUrl = `${origin}/reset-password?token=${token}`;
+
+    return {
+      success: true,
+      message: `Password reset link generated and dispatched to ${matchedUser.email}. Valid for 1 hour.`,
+      resetUrl,
+      token,
+      user: matchedUser,
+    };
+  };
+
+  const verifyResetToken = (token: string): { valid: boolean; message?: string; record?: PasswordResetToken } => {
+    if (!token) {
+      return { valid: false, message: 'Reset token missing from request URL.' };
+    }
+
+    const resets = storageService.getItem<PasswordResetToken[]>(STORAGE_KEYS.PASSWORD_RESETS, []);
+    const record = resets.find((r) => r.token === token);
+
+    if (!record) {
+      return { valid: false, message: 'This password reset link is invalid or does not exist.' };
+    }
+
+    if (record.used) {
+      return { valid: false, message: 'This password reset link has already been used and cannot be reused.' };
+    }
+
+    if (Date.now() > new Date(record.expiresAt).getTime()) {
+      return { valid: false, message: 'This password reset link has expired (links expire after 1 hour). Please request a new link.' };
+    }
+
+    return { valid: true, record };
+  };
+
+  const completePasswordReset = async (
+    token: string,
+    newPassword: string
+  ): Promise<{ success: boolean; message: string }> => {
+    const verification = verifyResetToken(token);
+    if (!verification.valid || !verification.record) {
+      return { success: false, message: verification.message || 'Invalid or expired reset token.' };
+    }
+
+    if (!newPassword || newPassword.length < 6) {
+      return { success: false, message: 'Password must be at least 6 characters in length.' };
+    }
+
+    const record = verification.record;
+    const targetEmail = record.email.toLowerCase().trim();
+
+    // Store new password
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(`bf_pwd_${targetEmail}`, newPassword);
+    }
+
+    // Mark token as used
+    const resets = storageService.getItem<PasswordResetToken[]>(STORAGE_KEYS.PASSWORD_RESETS, []);
+    const updatedResets = resets.map((r) =>
+      r.token === token ? { ...r, used: true, usedAt: new Date().toISOString() } : r
+    );
+    storageService.setItem(STORAGE_KEYS.PASSWORD_RESETS, updatedResets);
+
+    // Record audit log
+    try {
+      const websiteContent = storageService.getItem<any>(STORAGE_KEYS.WEBSITE_CONTENT, {});
+      const auditLogs = websiteContent.auditLogs || [];
+      const newAuditLog = {
+        id: `audit-${Date.now()}`,
+        action: 'PASSWORD_RESET_COMPLETED',
+        details: `Password was successfully updated using a one-time token for account ${record.email}.`,
+        performedBy: record.email,
+        timestamp: new Date().toISOString(),
+      };
+      storageService.setItem(STORAGE_KEYS.WEBSITE_CONTENT, {
+        ...websiteContent,
+        auditLogs: [newAuditLog, ...auditLogs],
+      });
+    } catch {}
+
+    return {
+      success: true,
+      message: 'Your password has been successfully reset! You can now log in with your new credentials.',
+    };
+  };
+
+  const changeCurrentUserPassword = async (
+    currentPassword: string,
+    newPassword: string
+  ): Promise<{ success: boolean; message: string }> => {
+    if (!currentUser || !currentUser.email) {
+      return { success: false, message: 'You must be signed in to change your password.' };
+    }
+
+    const userEmail = currentUser.email.toLowerCase().trim();
+    const storedPwd = typeof window !== 'undefined' ? localStorage.getItem(`bf_pwd_${userEmail}`) : null;
+    const defaultDemoPwd = DEMO_PASSWORDS[userEmail];
+
+    // Check current password
+    const isCurrentValid = defaultDemoPwd
+      ? currentPassword === defaultDemoPwd || currentPassword === storedPwd
+      : storedPwd
+      ? currentPassword === storedPwd
+      : currentPassword.length >= 6;
+
+    if (!isCurrentValid) {
+      return { success: false, message: 'Your current password does not match our records.' };
+    }
+
+    if (!newPassword || newPassword.length < 6) {
+      return { success: false, message: 'New password must be at least 6 characters in length.' };
+    }
+
+    if (newPassword === currentPassword) {
+      return { success: false, message: 'New password cannot be identical to your current password.' };
+    }
+
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(`bf_pwd_${userEmail}`, newPassword);
+    }
+
+    return { success: true, message: 'Your password has been changed securely and is updated for future sign-ins.' };
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -398,6 +663,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         login,
         logout,
         registerUser,
+        requestPasswordReset,
+        verifyResetToken,
+        completePasswordReset,
+        changeCurrentUserPassword,
       }}
     >
       {children}

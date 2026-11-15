@@ -46,6 +46,8 @@ CREATE TABLE IF NOT EXISTS public.volunteers (
     profile_photo TEXT,
     availability TEXT DEFAULT 'Weekends',
     experience TEXT DEFAULT 'Fresher (No Experience)',
+    experience_org TEXT,
+    other_skills TEXT,
     hours_served INT DEFAULT 0,
     status verification_status NOT NULL DEFAULT 'PENDING',
     rejection_reason TEXT,
@@ -230,3 +232,17 @@ ALTER PUBLICATION supabase_realtime ADD TABLE public.camp_meetings;
 ALTER PUBLICATION supabase_realtime ADD TABLE public.emergency_blood_requests;
 ALTER PUBLICATION supabase_realtime ADD TABLE public.care_homes;
 ALTER PUBLICATION supabase_realtime ADD TABLE public.qr_settings;
+
+-- 14. Password Resets Table
+CREATE TABLE IF NOT EXISTS public.password_resets (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    token TEXT UNIQUE NOT NULL,
+    user_id UUID,
+    email TEXT NOT NULL,
+    name TEXT,
+    role TEXT NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    expires_at TIMESTAMPTZ NOT NULL,
+    used BOOLEAN DEFAULT false,
+    used_at TIMESTAMPTZ
+);

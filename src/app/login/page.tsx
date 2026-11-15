@@ -24,7 +24,7 @@ function LoginFormContent() {
   const searchParams = useSearchParams();
   const registeredParam = searchParams.get('registered');
 
-  const { login } = useAuth();
+  const { login, requestPasswordReset } = useAuth();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -35,6 +35,10 @@ function LoginFormContent() {
   const [pendingNotice, setPendingNotice] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showForgotModal, setShowForgotModal] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotMsg, setForgotMsg] = useState('');
+  const [forgotResetUrl, setForgotResetUrl] = useState('');
+  const [forgotLoading, setForgotLoading] = useState(false);
 
   // Load Remembered Email on Mount
   useEffect(() => {
@@ -239,14 +243,18 @@ function LoginFormContent() {
       {/* Forgot Password Modal */}
       {showForgotModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in">
-          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-sm w-full shadow-2xl border border-brand-border space-y-4">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl border border-brand-border space-y-4">
             <div className="flex items-center justify-between">
               <div className="w-10 h-10 rounded-2xl bg-purple-100 flex items-center justify-center text-brand-primary">
                 <HelpCircle className="w-5 h-5" />
               </div>
               <button
                 type="button"
-                onClick={() => setShowForgotModal(false)}
+                onClick={() => {
+                  setShowForgotModal(false);
+                  setForgotMsg('');
+                  setForgotResetUrl('');
+                }}
                 className="text-brand-muted hover:text-brand-text p-1.5 rounded-xl hover:bg-brand-bgLight transition-colors"
               >
                 <X className="w-4 h-4" />
@@ -255,26 +263,102 @@ function LoginFormContent() {
             <div>
               <h3 className="text-base font-bold text-brand-primaryDark">Account Password Recovery</h3>
               <p className="text-xs text-brand-muted mt-1 leading-relaxed">
-                For security, password resets are processed by the Bharathi Foundation administrative desk.
+                Enter your registered email address or mobile number below to generate a secure, 1-hour password reset authorization link.
               </p>
             </div>
-            <div className="p-3 bg-brand-bgLight rounded-2xl border border-brand-border space-y-1.5 text-xs text-brand-text">
-              <div>
-                <span className="text-brand-muted block text-[11px]">Support Email:</span>
-                <span className="font-bold text-brand-primary">support@bharathifoundation.org</span>
+
+            {forgotMsg && (
+              <div className={`p-3.5 rounded-xl text-xs flex items-start gap-2 ${
+                forgotResetUrl ? 'bg-emerald-50 text-emerald-900 border border-emerald-200' : 'bg-red-50 text-red-700 border border-red-200'
+              }`}>
+                {forgotResetUrl ? <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" /> : <AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />}
+                <div className="leading-relaxed">{forgotMsg}</div>
               </div>
-              <div>
-                <span className="text-brand-muted block text-[11px]">Helpline:</span>
-                <span className="font-bold">+91 98765 43210</span>
+            )}
+
+            {forgotResetUrl ? (
+              <div className="space-y-3 pt-2">
+                <Link
+                  href={forgotResetUrl}
+                  onClick={() => setShowForgotModal(false)}
+                  className="w-full py-2.5 bg-brand-primary text-white rounded-xl text-xs font-bold hover:bg-brand-primaryDark transition-colors flex items-center justify-center gap-2 shadow-xs"
+                >
+                  <span>Proceed to Reset Password</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowForgotModal(false);
+                    setForgotMsg('');
+                    setForgotResetUrl('');
+                  }}
+                  className="w-full py-2 border border-brand-border text-brand-muted hover:text-brand-text rounded-xl text-xs font-semibold"
+                >
+                  Close
+                </button>
               </div>
+            ) : (
+              <form
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  if (!forgotEmail.trim()) return;
+                  setForgotLoading(true);
+                  setForgotMsg('');
+                  setForgotResetUrl('');
+                  try {
+                    const res = await requestPasswordReset(forgotEmail.trim());
+                    if (res.success && res.resetUrl) {
+                      setForgotMsg(res.message);
+                      setForgotResetUrl(res.resetUrl);
+                    } else {
+                      setForgotMsg(res.message);
+                    }
+                  } catch (err: any) {
+                    setForgotMsg(err.message || 'Failed to request password reset.');
+                  } finally {
+                    setForgotLoading(false);
+                  }
+                }}
+                className="space-y-3"
+              >
+                <div>
+                  <label className="block text-xs font-bold text-brand-text mb-1">
+                    Registered Email or Phone
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. volunteer@bharathifoundation.org"
+                    value={forgotEmail}
+                    onChange={(e) => setForgotEmail(e.target.value)}
+                    className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-brand-border focus:ring-2 focus:ring-brand-primary focus:outline-hidden"
+                  />
+                </div>
+
+                <div className="flex gap-2 pt-1">
+                  <button
+                    type="submit"
+                    disabled={forgotLoading}
+                    className="flex-1 py-2.5 bg-brand-primary text-white rounded-xl text-xs font-bold hover:bg-brand-primaryDark disabled:opacity-50 transition-colors shadow-xs"
+                  >
+                    {forgotLoading ? 'Processing...' : 'Send Reset Link'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowForgotModal(false)}
+                    className="px-4 py-2.5 border border-brand-border text-brand-muted hover:text-brand-text rounded-xl text-xs font-semibold"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            )}
+
+            <div className="pt-2 border-t border-brand-border/60 text-[11px] text-brand-muted">
+              <span>Foundation Administrative Desk: </span>
+              <span className="font-semibold text-brand-text">support@bharathifoundation.org</span>
             </div>
-            <button
-              type="button"
-              onClick={() => setShowForgotModal(false)}
-              className="w-full py-2.5 bg-brand-primary text-white rounded-xl text-xs font-bold hover:bg-brand-primaryDark transition-colors"
-            >
-              Understood
-            </button>
           </div>
         </div>
       )}
