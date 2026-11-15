@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { Logo } from '@/components/common/Logo';
-import { UserRole } from '@/types';
+import { UserRole, VOLUNTEER_EXPERIENCE_OPTIONS } from '@/types';
 import {
   Building2,
   Users,
@@ -73,6 +73,7 @@ export default function RegisterPage() {
     'Blood Donation Camps',
   ]);
   const [availability, setAvailability] = useState('Weekends');
+  const [experience, setExperience] = useState('Fresher (No Experience)');
   const [profilePhoto, setProfilePhoto] = useState<string>('');
   const [profilePhotoName, setProfilePhotoName] = useState<string>('');
   const [termsAccepted, setTermsAccepted] = useState(false);
@@ -161,6 +162,11 @@ export default function RegisterPage() {
         taxExempt80G,
       };
     } else if (selectedRole === 'VOLUNTEER') {
+      if (!experience) {
+        setErrorMsg('Please select your volunteer experience level.');
+        setIsSubmitting(false);
+        return;
+      }
       extraData = {
         dob,
         gender,
@@ -172,6 +178,7 @@ export default function RegisterPage() {
         skills: selectedSkills.length > 0 ? selectedSkills : ['General Volunteer Support'],
         areasOfInterest: selectedInterests,
         availability,
+        experience,
         profilePhoto: profilePhoto || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=256',
       };
     } else if (selectedRole === 'DONOR') {
@@ -466,7 +473,7 @@ export default function RegisterPage() {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-brand-text mb-1">Availability Schedule</label>
+                    <label className="block text-xs font-bold text-brand-text mb-1">Availability Schedule *</label>
                     <select
                       value={availability}
                       onChange={(e) => setAvailability(e.target.value)}
@@ -478,6 +485,37 @@ export default function RegisterPage() {
                       <option value="Full-time">Full-time Volunteer</option>
                       <option value="Emergency Response">On-Call Emergencies</option>
                     </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-brand-text mb-1">Experience *</label>
+                    <select
+                      required
+                      value={experience}
+                      onChange={(e) => setExperience(e.target.value)}
+                      className="w-full px-3 py-2 text-sm rounded-xl border border-brand-border focus:ring-2 focus:ring-brand-primary focus:outline-hidden"
+                    >
+                      <option value="" disabled>Select volunteer experience...</option>
+                      {VOLUNTEER_EXPERIENCE_OPTIONS.map((exp) => (
+                        <option key={exp} value={exp}>
+                          {exp}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-brand-text mb-1">Emergency Standby Contact *</label>
+                    <input
+                      type="tel"
+                      required
+                      placeholder="Family or Friend Mobile (+91)"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      className="w-full px-3.5 py-2 text-sm rounded-xl border border-brand-border focus:ring-2 focus:ring-brand-primary focus:outline-hidden"
+                    />
                   </div>
                 </div>
 

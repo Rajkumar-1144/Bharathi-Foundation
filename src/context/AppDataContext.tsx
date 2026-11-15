@@ -170,6 +170,7 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
   const [expenditures, setExpenditures] = useState<ExpenditureRecord[]>(INITIAL_EXPENDITURES);
   const [attendance, setAttendance] = useState<AttendanceRecord[]>(INITIAL_ATTENDANCE);
   const [language, setLanguageState] = useState<Language>('en');
+  const [usersList, setUsersList] = useState<User[]>(INITIAL_USERS);
 
   // Care Home Management State
   const [careHomes, setCareHomes] = useState<CareHome[]>(INITIAL_CARE_HOMES);
@@ -177,6 +178,7 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
   const [careHomeCampaigns, setCareHomeCampaigns] = useState<CareHomeSupportCampaign[]>(INITIAL_CARE_HOME_CAMPAIGNS);
 
   const loadAllFromStorage = () => {
+    setUsersList(storageService.getItem<User[]>(STORAGE_KEYS.USERS, INITIAL_USERS));
     setNgos(storageService.getItem<NGO[]>(STORAGE_KEYS.NGOS, INITIAL_NGOS));
     setVolunteers(storageService.getItem<Volunteer[]>(STORAGE_KEYS.VOLUNTEERS, INITIAL_VOLUNTEERS));
     setDonors(storageService.getItem<Donor[]>(STORAGE_KEYS.DONORS, INITIAL_DONORS));
@@ -801,8 +803,7 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
 
   const totalVerifiedWelfare = baselineWelfare + verifiedDonationsSum;
 
-  // Community Members: unique registered individuals across registered user database
-  const usersList = storageService.getItem<User[]>(STORAGE_KEYS.USERS, []);
+  // Community Members: unique registered individuals across registered user database (uses stable state)
   const uniqueMemberIdentities = new Set<string>();
   usersList.forEach((u) => {
     if (u.email) uniqueMemberIdentities.add(u.email.toLowerCase().trim());

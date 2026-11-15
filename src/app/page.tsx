@@ -323,7 +323,7 @@ export default function HomePage() {
               <div className="flex flex-wrap items-center justify-center sm:justify-start gap-4 pt-4">
                 <Link
                   href={websiteContent.heroCta1Link || '/register?role=volunteer'}
-                  className="flex items-center justify-center gap-2.5 bg-gradient-to-r from-brand-secondary to-[#C4B5FD] hover:from-white hover:to-purple-100 text-brand-primaryDark px-8 py-4 rounded-full text-base sm:text-lg font-black shadow-xl hover:shadow-2xl transition-all hover:-translate-y-1 active:translate-y-0"
+                  className="flex items-center justify-center gap-2.5 bg-gradient-to-r from-brand-secondary to-[#C4B5FD] hover:from-white hover:to-purple-100 text-brand-primaryDark px-7 py-4 rounded-full text-base sm:text-lg font-black shadow-xl hover:shadow-2xl transition-all hover:-translate-y-1 active:translate-y-0"
                 >
                   <Users className="w-5 h-5 text-brand-primaryDark" />
                   <span>{websiteContent.heroCta1Text || 'Join as Volunteer'}</span>
@@ -331,11 +331,19 @@ export default function HomePage() {
 
                 <a
                   href={websiteContent.heroCta2Link || '#donation-campaigns'}
-                  className="flex items-center justify-center gap-2.5 bg-white/10 hover:bg-white/20 text-white border-2 border-white/40 hover:border-white px-8 py-4 rounded-full text-base sm:text-lg font-bold backdrop-blur-md transition-all hover:-translate-y-1"
+                  className="flex items-center justify-center gap-2.5 bg-white/10 hover:bg-white/20 text-white border-2 border-white/40 hover:border-white px-7 py-4 rounded-full text-base sm:text-lg font-bold backdrop-blur-md transition-all hover:-translate-y-1"
                 >
                   <Heart className="w-5 h-5 text-red-400 fill-red-400 animate-pulse" />
                   <span>{websiteContent.heroCta2Text || 'Donate Now'}</span>
                 </a>
+
+                <Link
+                  href="/blood-donation"
+                  className="flex items-center justify-center gap-2.5 bg-gradient-to-r from-red-600 via-rose-600 to-[#7C3AED] hover:from-red-500 hover:to-purple-600 text-white border border-red-400/50 hover:border-red-300 px-7 py-4 rounded-full text-base sm:text-lg font-bold shadow-xl hover:shadow-2xl transition-all hover:-translate-y-1 active:translate-y-0 group"
+                >
+                  <Droplet className="w-5 h-5 text-red-200 fill-red-200 group-hover:scale-110 transition-transform animate-pulse" />
+                  <span>Raise Emergency Blood Request</span>
+                </Link>
               </div>
 
               {/* Trust Accreditations Strip */}

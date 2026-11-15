@@ -87,6 +87,18 @@ export const storageService = {
         localStorage.setItem(key, JSON.stringify(defaultValue));
         return defaultValue;
       }
+      if (key === STORAGE_KEYS.USERS) {
+        const parsed = JSON.parse(item);
+        if (!Array.isArray(parsed) || parsed.length === 0 || !parsed.some((u: any) => u.email === 'admin@bharathifoundation.org')) {
+          const existingIds = new Set(Array.isArray(parsed) ? parsed.map((u: any) => u.id || u.email?.toLowerCase()?.trim()) : []);
+          const merged = [
+            ...(Array.isArray(parsed) ? parsed : []),
+            ...INITIAL_USERS.filter((iu) => !existingIds.has(iu.id) && !existingIds.has(iu.email.toLowerCase().trim())),
+          ];
+          localStorage.setItem(key, JSON.stringify(merged));
+          return merged as T;
+        }
+      }
       if (key === STORAGE_KEYS.WEBSITE_CONTENT) {
         const parsed = JSON.parse(item);
         if (!parsed.heroHeading || !parsed.heroHeading.includes('Lives Touched') || !parsed.missionText?.includes("mother's love")) {

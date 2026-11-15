@@ -124,6 +124,15 @@ export default function AdminVolunteersPage() {
       ),
     },
     {
+      header: 'Experience',
+      accessorKey: 'experience',
+      cell: (row) => (
+        <span className="inline-block px-2.5 py-1 rounded-full text-[11px] font-bold bg-purple-50 text-brand-primaryDark border border-purple-200">
+          {row.experience || 'Fresher (No Experience)'}
+        </span>
+      ),
+    },
+    {
       header: 'Hours Served',
       accessorKey: 'hoursServed',
       cell: (row) => (
@@ -287,7 +296,10 @@ export default function AdminVolunteersPage() {
                         <MapPin className="w-3 h-3 text-brand-muted" />
                         {vol.city || 'Bengaluru'}{vol.state ? `, ${vol.state}` : ''} • {vol.phone}
                       </p>
-                      <div className="flex flex-wrap gap-1 mt-2">
+                      <div className="flex flex-wrap items-center gap-1.5 mt-2">
+                        <span className="bg-purple-50 text-brand-primaryDark border border-purple-200 text-[10px] font-bold px-2 py-0.5 rounded">
+                          Exp: {vol.experience || 'Fresher (No Experience)'}
+                        </span>
                         {vol.skills?.slice(0, 2).map((s, i) => (
                           <span
                             key={i}
@@ -415,7 +427,7 @@ export default function AdminVolunteersPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4 text-xs">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
               <div className="p-3 bg-white rounded-xl border border-brand-border">
                 <span className="text-brand-muted block font-medium">Contact Email</span>
                 <span className="font-bold text-brand-text truncate block mt-0.5">{selectedVol.email}</span>
@@ -427,6 +439,18 @@ export default function AdminVolunteersPage() {
               <div className="p-3 bg-white rounded-xl border border-brand-border">
                 <span className="text-brand-muted block font-medium">Blood Group</span>
                 <span className="font-bold text-red-700 block mt-0.5">{selectedVol.bloodGroup || 'Not specified'}</span>
+              </div>
+              <div className="p-3 bg-white rounded-xl border border-brand-border">
+                <span className="text-brand-muted block font-medium">Volunteering Experience</span>
+                <span className="font-bold text-brand-primaryDark block mt-0.5">
+                  {selectedVol.experience || 'Fresher (No Experience)'}
+                </span>
+              </div>
+              <div className="p-3 bg-white rounded-xl border border-brand-border">
+                <span className="text-brand-muted block font-medium">Availability</span>
+                <span className="font-bold text-brand-text block mt-0.5">
+                  {selectedVol.availability || 'Weekends'}
+                </span>
               </div>
               <div className="p-3 bg-white rounded-xl border border-brand-border">
                 <span className="text-brand-muted block font-medium">Date of Birth & Gender</span>

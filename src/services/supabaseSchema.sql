@@ -45,6 +45,7 @@ CREATE TABLE IF NOT EXISTS public.volunteers (
     areas_of_interest TEXT[] DEFAULT '{}',
     profile_photo TEXT,
     availability TEXT DEFAULT 'Weekends',
+    experience TEXT DEFAULT 'Fresher (No Experience)',
     hours_served INT DEFAULT 0,
     status verification_status NOT NULL DEFAULT 'PENDING',
     rejection_reason TEXT,

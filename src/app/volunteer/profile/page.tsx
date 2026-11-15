@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
 import { useAppData } from '@/context/AppDataContext';
 import { useAuth } from '@/context/AuthContext';
 import { Logo } from '@/components/common/Logo';
+import { VOLUNTEER_EXPERIENCE_OPTIONS } from '@/types';
 import {
   Users,
   CheckCircle2,
@@ -35,8 +36,22 @@ export default function VolunteerProfilePage() {
   const [city, setCity] = useState(currentVol?.city || '');
   const [pincode, setPincode] = useState(currentVol?.pincode || '');
   const [availability, setAvailability] = useState(currentVol?.availability || 'Weekends');
+  const [experience, setExperience] = useState(currentVol?.experience || 'Fresher (No Experience)');
   const [skills, setSkills] = useState(currentVol?.skills?.join(', ') || '');
   const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    if (currentVol) {
+      setName(currentVol.name || '');
+      setBloodGroup(currentVol.bloodGroup || 'O+');
+      setPhone(currentVol.phone || '');
+      setCity(currentVol.city || '');
+      setPincode(currentVol.pincode || '');
+      setAvailability(currentVol.availability || 'Weekends');
+      setExperience(currentVol.experience || 'Fresher (No Experience)');
+      setSkills(currentVol.skills?.join(', ') || '');
+    }
+  }, [currentVol]);
 
   const cardRef = useRef<HTMLDivElement>(null);
 
@@ -51,6 +66,7 @@ export default function VolunteerProfilePage() {
       city,
       pincode,
       availability,
+      experience,
       skills: skills.split(',').map((s) => s.trim()),
     });
 
@@ -159,6 +175,9 @@ export default function VolunteerProfilePage() {
                     <span className="bg-emerald-500/20 text-emerald-300 font-bold text-[10px] px-2 py-0.5 rounded-md border border-emerald-400/30">
                       ACTIVE
                     </span>
+                    <span className="bg-purple-500/30 text-purple-200 font-bold text-[10px] px-2 py-0.5 rounded-md border border-purple-400/30">
+                      {experience || currentVol?.experience || 'Fresher'}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -256,6 +275,23 @@ export default function VolunteerProfilePage() {
               </div>
 
               <div>
+                <label className="block text-xs font-bold text-brand-text mb-1">Volunteering Experience</label>
+                <select
+                  value={experience}
+                  onChange={(e) => setExperience(e.target.value)}
+                  className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-brand-border focus:ring-2 focus:ring-brand-primary focus:outline-hidden"
+                >
+                  {VOLUNTEER_EXPERIENCE_OPTIONS.map((opt) => (
+                    <option key={opt} value={opt}>
+                      {opt}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
                 <label className="block text-xs font-bold text-brand-text mb-1">Availability Schedule</label>
                 <select
                   value={availability}
@@ -269,9 +305,7 @@ export default function VolunteerProfilePage() {
                   <option value="Emergency Response">On-Call Emergencies</option>
                 </select>
               </div>
-            </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-bold text-brand-text mb-1">City</label>
                 <input
@@ -282,16 +316,16 @@ export default function VolunteerProfilePage() {
                   className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-brand-border focus:ring-2 focus:ring-brand-primary focus:outline-hidden"
                 />
               </div>
+            </div>
 
-              <div>
-                <label className="block text-xs font-bold text-brand-text mb-1">Pincode</label>
-                <input
-                  type="text"
-                  value={pincode}
-                  onChange={(e) => setPincode(e.target.value)}
-                  className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-brand-border focus:ring-2 focus:ring-brand-primary focus:outline-hidden"
-                />
-              </div>
+            <div>
+              <label className="block text-xs font-bold text-brand-text mb-1">Pincode</label>
+              <input
+                type="text"
+                value={pincode}
+                onChange={(e) => setPincode(e.target.value)}
+                className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-brand-border focus:ring-2 focus:ring-brand-primary focus:outline-hidden"
+              />
             </div>
 
             <div>

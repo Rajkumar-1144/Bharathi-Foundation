@@ -40,6 +40,17 @@ export interface NGO {
   createdAt: string;
 }
 
+export const VOLUNTEER_EXPERIENCE_OPTIONS = [
+  'Fresher (No Experience)',
+  'Less than 1 Year',
+  '1–2 Years',
+  '3–5 Years',
+  '5–10 Years',
+  'More than 10 Years',
+] as const;
+
+export type VolunteerExperience = typeof VOLUNTEER_EXPERIENCE_OPTIONS[number];
+
 export interface Volunteer {
   id: string;
   userId: string;
@@ -61,6 +72,7 @@ export interface Volunteer {
   idCardIssued?: boolean;
   availability: string;
   hoursServed: number;
+  experience?: string;
   status: VerificationStatus;
   rejectionReason?: string;
   certificatesCount: number;
