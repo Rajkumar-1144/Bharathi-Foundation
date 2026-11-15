@@ -106,5 +106,46 @@ export const imageService = {
       };
     }
   },
+
+  /**
+   * Uploads any CMS image (services, stories, gallery, campaigns, hero) to persistent storage.
+   * Never returns a temporary blob: URL.
+   */
+  async uploadCmsImage(file: File): Promise<{ success: boolean; url?: string; error?: string }> {
+    const validation = this.validateQrImage(file);
+    if (!validation.valid) {
+      return { success: false, error: validation.error };
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const res = await fetch('/api/cms/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (res.ok && data.success && data.url) {
+        return { success: true, url: data.url };
+      }
+
+      // Fallback: client-side compressed data URL
+      const compressed = await this.processImageUpload(file);
+      return { success: true, url: compressed };
+    } catch (err: any) {
+      console.warn('[imageService] Server upload error, using local processed fallback:', err);
+      try {
+        const compressed = await this.processImageUpload(file);
+        return { success: true, url: compressed };
+      } catch (innerErr: any) {
+        return {
+          success: false,
+          error: innerErr?.message || 'Failed to process and store image.',
+        };
+      }
+    }
+  },
 };
 
