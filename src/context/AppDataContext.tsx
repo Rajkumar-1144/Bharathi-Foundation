@@ -138,6 +138,7 @@ interface AppDataContextType {
   // Gallery Management
   uploadPhoto: (item: Omit<GalleryItem, 'id' | 'date'>) => void;
   approvePhoto: (id: string) => void;
+  updatePhoto: (id: string, updated: Partial<GalleryItem>) => void;
   deletePhoto: (id: string) => void;
 
   // Website Content CMS
@@ -621,6 +622,12 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
     storageService.setItem(STORAGE_KEYS.GALLERY, updated);
   };
 
+  const updatePhoto = (id: string, updatedData: Partial<GalleryItem>) => {
+    const updated = gallery.map((item) => (item.id === id ? { ...item, ...updatedData } : item));
+    setGallery(updated);
+    storageService.setItem(STORAGE_KEYS.GALLERY, updated);
+  };
+
   const deletePhoto = (id: string) => {
     const updated = gallery.filter((item) => item.id !== id);
     setGallery(updated);
@@ -1017,6 +1024,7 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
         addExpenditure,
         uploadPhoto,
         approvePhoto,
+        updatePhoto,
         deletePhoto,
         updateWebsiteContent,
         saveDraft,

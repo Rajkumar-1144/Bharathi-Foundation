@@ -5,7 +5,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
 import { useAppData } from '@/context/AppDataContext';
-import { CMSServiceItem, CMSImpactStory, CMSCampaignItem, UserRole } from '@/types';
+import { CMSServiceItem, CMSImpactStory, CMSCampaignItem, GalleryItem, UserRole } from '@/types';
+import { CMSImageUploader } from '@/components/admin/CMSImageUploader';
 import {
   Globe,
   CheckCircle2,
@@ -47,6 +48,7 @@ export default function AdminContentManagementPage() {
     uploadPhoto,
     deletePhoto,
     approvePhoto,
+    updatePhoto,
   } = useAppData();
 
   const [activeTab, setActiveTab] = useState<
@@ -106,11 +108,16 @@ export default function AdminContentManagementPage() {
 
   // State for Impact Stories
   const [impactStoriesList, setImpactStoriesList] = useState<CMSImpactStory[]>(websiteContent.impactStoriesList || []);
+  const [editingStory, setEditingStory] = useState<CMSImpactStory | null>(null);
   const [newStoryModal, setNewStoryModal] = useState(false);
 
   // State for Donation Campaigns
   const [campaignsList, setCampaignsList] = useState<CMSCampaignItem[]>(websiteContent.donationCampaignsList || []);
+  const [editingCampaign, setEditingCampaign] = useState<CMSCampaignItem | null>(null);
   const [newCampaignModal, setNewCampaignModal] = useState(false);
+
+  // State for Photo Gallery
+  const [editingPhoto, setEditingPhoto] = useState<GalleryItem | null>(null);
 
   // State for Footer & Contacts
   const [contactEmail, setContactEmail] = useState(websiteContent.contactEmail);
@@ -206,6 +213,16 @@ export default function AdminContentManagementPage() {
     triggerNotify(`Created new service: "${newService.title}"`);
   };
 
+  const handleSaveEditedService = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingService) return;
+    const updated = servicesList.map((s) => (s.id === editingService.id ? editingService : s));
+    setServicesList(updated);
+    updateWebsiteContent({ servicesList: updated });
+    setEditingService(null);
+    triggerNotify(`Saved changes for service: "${editingService.title}"`);
+  };
+
   // Handle Impact Stories CRUD
   const handleToggleStoryPublish = (id: string) => {
     const updated = impactStoriesList.map((s) => (s.id === id ? { ...s, published: !s.published } : s));
@@ -242,6 +259,16 @@ export default function AdminContentManagementPage() {
     triggerNotify(`Published story: "${newStory.title}"`);
   };
 
+  const handleSaveEditedStory = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingStory) return;
+    const updated = impactStoriesList.map((s) => (s.id === editingStory.id ? editingStory : s));
+    setImpactStoriesList(updated);
+    updateWebsiteContent({ impactStoriesList: updated });
+    setEditingStory(null);
+    triggerNotify(`Saved changes for story: "${editingStory.title}"`);
+  };
+
   // Handle Donation Campaigns CRUD
   const handleToggleCampaignPublish = (id: string) => {
     const updated = campaignsList.map((c) => (c.id === id ? { ...c, published: !c.published } : c));
@@ -270,6 +297,16 @@ export default function AdminContentManagementPage() {
     updateWebsiteContent({ donationCampaignsList: updated });
     setNewCampaignModal(false);
     triggerNotify(`Launched campaign: "${newCamp.title}"`);
+  };
+
+  const handleSaveEditedCampaign = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingCampaign) return;
+    const updated = campaignsList.map((c) => (c.id === editingCampaign.id ? editingCampaign : c));
+    setCampaignsList(updated);
+    updateWebsiteContent({ donationCampaignsList: updated });
+    setEditingCampaign(null);
+    triggerNotify(`Saved changes for campaign: "${editingCampaign.title}"`);
   };
 
   // Handle Save Footer
@@ -304,6 +341,14 @@ export default function AdminContentManagementPage() {
     setNewPhotoUrl('');
     setNewPhotoTitle('');
     triggerNotify('New photograph added to approved public gallery!');
+  };
+
+  const handleSaveEditedPhoto = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingPhoto) return;
+    updatePhoto(editingPhoto.id, editingPhoto);
+    setEditingPhoto(null);
+    triggerNotify(`Saved changes for photograph: "${editingPhoto.title}"`);
   };
 
   // Publish / Draft Handlers
@@ -997,18 +1042,128 @@ export default function AdminContentManagementPage() {
                     {service.published ? 'Published' : 'Hidden (Draft)'}
                   </button>
 
-                  <button
-                    type="button"
-                    onClick={() => handleDeleteService(service.id)}
-                    className="text-red-500 hover:text-red-700 p-1"
-                    title="Delete service"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => setEditingService(service)}
+                      className="text-brand-primary hover:text-brand-primaryDark p-1.5 rounded-lg hover:bg-purple-50 transition-colors"
+                      title="Edit Service"
+                    >
+                      <Edit3 className="w-4 h-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteService(service.id)}
+                      className="text-red-500 hover:text-red-700 p-1.5 rounded-lg hover:bg-red-50 transition-colors"
+                      title="Delete service"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
           </div>
+
+          {/* Edit Service Modal */}
+          {editingService && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in">
+              <form
+                onSubmit={handleSaveEditedService}
+                className="bg-white rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl border border-brand-border space-y-4 max-h-[90vh] overflow-y-auto"
+              >
+                <div className="flex items-center justify-between border-b pb-3">
+                  <div>
+                    <h3 className="text-base font-bold text-brand-primaryDark">Edit Service Pillar</h3>
+                    <p className="text-[11px] text-brand-muted">Update service details, replace or upload image, and adjust display status.</p>
+                  </div>
+                  <button type="button" onClick={() => setEditingService(null)} className="text-brand-muted hover:text-brand-text p-1">
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-brand-muted mb-1">Service Title</label>
+                  <input
+                    value={editingService.title}
+                    onChange={(e) => setEditingService({ ...editingService, title: e.target.value })}
+                    required
+                    className="w-full px-3 py-2 text-xs rounded-xl border border-brand-border focus:ring-2 focus:ring-brand-primary outline-hidden"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[11px] font-bold text-brand-muted mb-1">Category</label>
+                    <input
+                      value={editingService.category}
+                      onChange={(e) => setEditingService({ ...editingService, category: e.target.value })}
+                      required
+                      className="w-full px-3 py-2 text-xs rounded-xl border border-brand-border focus:ring-2 focus:ring-brand-primary outline-hidden"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold text-brand-muted mb-1">Display Order</label>
+                    <input
+                      type="number"
+                      value={editingService.order || 1}
+                      onChange={(e) => setEditingService({ ...editingService, order: parseInt(e.target.value, 10) || 1 })}
+                      min={1}
+                      className="w-full px-3 py-2 text-xs rounded-xl border border-brand-border focus:ring-2 focus:ring-brand-primary outline-hidden"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-brand-muted mb-1">Description</label>
+                  <textarea
+                    value={editingService.description}
+                    onChange={(e) => setEditingService({ ...editingService, description: e.target.value })}
+                    rows={3}
+                    required
+                    className="w-full px-3 py-2 text-xs rounded-xl border border-brand-border focus:ring-2 focus:ring-brand-primary outline-hidden"
+                  />
+                </div>
+
+                {/* Persistent Image Uploader */}
+                <CMSImageUploader
+                  label="Service Image"
+                  currentImageUrl={editingService.imageUrl}
+                  onImageChanged={(newUrl) => setEditingService({ ...editingService, imageUrl: newUrl })}
+                  helperText="Upload PNG, JPG, WebP file or paste external image URL"
+                />
+
+                <div className="flex items-center gap-2 pt-2 border-t">
+                  <input
+                    type="checkbox"
+                    id="editServicePub"
+                    checked={editingService.published !== false}
+                    onChange={(e) => setEditingService({ ...editingService, published: e.target.checked })}
+                    className="rounded text-brand-primary focus:ring-brand-primary"
+                  />
+                  <label htmlFor="editServicePub" className="text-xs font-semibold text-brand-text">
+                    Publish Live on Homepage
+                  </label>
+                </div>
+
+                <div className="flex justify-end gap-2 pt-3 border-t">
+                  <button
+                    type="button"
+                    onClick={() => setEditingService(null)}
+                    className="px-4 py-2 text-xs font-bold rounded-xl border border-brand-border hover:bg-gray-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-5 py-2 bg-brand-primary hover:bg-brand-primaryDark text-white text-xs font-bold rounded-xl shadow-xs"
+                  >
+                    Save Changes
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
 
           {/* New Service Modal */}
           {newServiceModal && (
@@ -1099,18 +1254,150 @@ export default function AdminContentManagementPage() {
                     {story.published ? 'Published Live' : 'Hidden'}
                   </button>
 
-                  <button
-                    type="button"
-                    onClick={() => handleDeleteStory(story.id)}
-                    className="text-red-500 hover:text-red-700 p-1"
-                    title="Delete story"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => setEditingStory(story)}
+                      className="text-brand-primary hover:text-brand-primaryDark p-1.5 rounded-lg hover:bg-purple-50 transition-colors"
+                      title="Edit Story"
+                    >
+                      <Edit3 className="w-4 h-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteStory(story.id)}
+                      className="text-red-500 hover:text-red-700 p-1.5 rounded-lg hover:bg-red-50 transition-colors"
+                      title="Delete story"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
           </div>
+
+          {/* Edit Impact Story Modal */}
+          {editingStory && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in">
+              <form
+                onSubmit={handleSaveEditedStory}
+                className="bg-white rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl border border-brand-border space-y-4 max-h-[90vh] overflow-y-auto"
+              >
+                <div className="flex items-center justify-between border-b pb-3">
+                  <div>
+                    <h3 className="text-base font-bold text-brand-primaryDark">Edit Impact Story</h3>
+                    <p className="text-[11px] text-brand-muted">Update headline, category, verified count, and replacement featured image.</p>
+                  </div>
+                  <button type="button" onClick={() => setEditingStory(null)} className="text-brand-muted hover:text-brand-text p-1">
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-brand-muted mb-1">Story Title</label>
+                  <input
+                    value={editingStory.title}
+                    onChange={(e) => setEditingStory({ ...editingStory, title: e.target.value })}
+                    required
+                    className="w-full px-3 py-2 text-xs rounded-xl border border-brand-border focus:ring-2 focus:ring-brand-primary outline-hidden"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[11px] font-bold text-brand-muted mb-1">Category</label>
+                    <input
+                      value={editingStory.category}
+                      onChange={(e) => setEditingStory({ ...editingStory, category: e.target.value })}
+                      required
+                      className="w-full px-3 py-2 text-xs rounded-xl border border-brand-border focus:ring-2 focus:ring-brand-primary outline-hidden"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold text-brand-muted mb-1">Beneficiaries Count</label>
+                    <input
+                      type="number"
+                      value={editingStory.beneficiariesCount || 0}
+                      onChange={(e) => setEditingStory({ ...editingStory, beneficiariesCount: parseInt(e.target.value, 10) || 0 })}
+                      min={1}
+                      className="w-full px-3 py-2 text-xs rounded-xl border border-brand-border focus:ring-2 focus:ring-brand-primary outline-hidden"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[11px] font-bold text-brand-muted mb-1">Location</label>
+                    <input
+                      value={editingStory.location}
+                      onChange={(e) => setEditingStory({ ...editingStory, location: e.target.value })}
+                      required
+                      className="w-full px-3 py-2 text-xs rounded-xl border border-brand-border focus:ring-2 focus:ring-brand-primary outline-hidden"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold text-brand-muted mb-1">Date</label>
+                    <input
+                      type="date"
+                      value={editingStory.date}
+                      onChange={(e) => setEditingStory({ ...editingStory, date: e.target.value })}
+                      required
+                      className="w-full px-3 py-2 text-xs rounded-xl border border-brand-border focus:ring-2 focus:ring-brand-primary outline-hidden"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-brand-muted mb-1">Detailed Narrative</label>
+                  <textarea
+                    value={editingStory.description}
+                    onChange={(e) => setEditingStory({ ...editingStory, description: e.target.value })}
+                    rows={4}
+                    required
+                    className="w-full px-3 py-2 text-xs rounded-xl border border-brand-border focus:ring-2 focus:ring-brand-primary outline-hidden"
+                  />
+                </div>
+
+                {/* Persistent Image Uploader */}
+                <CMSImageUploader
+                  label="Featured Story Photograph"
+                  currentImageUrl={editingStory.images?.[0] || ''}
+                  onImageChanged={(newUrl) => setEditingStory({ ...editingStory, images: [newUrl] })}
+                  helperText="Upload PNG, JPG, WebP file or paste external image URL"
+                />
+
+                <div className="flex items-center gap-2 pt-2 border-t">
+                  <input
+                    type="checkbox"
+                    id="editStoryPub"
+                    checked={editingStory.published !== false}
+                    onChange={(e) => setEditingStory({ ...editingStory, published: e.target.checked })}
+                    className="rounded text-brand-primary focus:ring-brand-primary"
+                  />
+                  <label htmlFor="editStoryPub" className="text-xs font-semibold text-brand-text">
+                    Publish Live in Stories & Ground Gallery
+                  </label>
+                </div>
+
+                <div className="flex justify-end gap-2 pt-3 border-t">
+                  <button
+                    type="button"
+                    onClick={() => setEditingStory(null)}
+                    className="px-4 py-2 text-xs font-bold rounded-xl border border-brand-border hover:bg-gray-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-5 py-2 bg-brand-primary hover:bg-brand-primaryDark text-white text-xs font-bold rounded-xl shadow-xs"
+                  >
+                    Save Changes
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
 
           {/* New Story Modal */}
           {newStoryModal && (
@@ -1227,17 +1514,142 @@ export default function AdminContentManagementPage() {
                       Approve
                     </button>
                   )}
-                  <button
-                    type="button"
-                    onClick={() => deletePhoto(img.id)}
-                    className="text-[10px] text-red-500 hover:text-red-700 ml-auto"
-                  >
-                    Delete
-                  </button>
+                  <div className="flex items-center gap-1 ml-auto">
+                    <button
+                      type="button"
+                      onClick={() => setEditingPhoto(img)}
+                      className="text-brand-primary hover:text-brand-primaryDark p-1 rounded hover:bg-purple-50 transition-colors"
+                      title="Edit Photograph"
+                    >
+                      <Edit3 className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => deletePhoto(img.id)}
+                      className="text-red-500 hover:text-red-700 p-1 rounded hover:bg-red-50 transition-colors"
+                      title="Delete Photograph"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
           </div>
+
+          {/* Edit Photograph Modal */}
+          {editingPhoto && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in">
+              <form
+                onSubmit={handleSaveEditedPhoto}
+                className="bg-white rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl border border-brand-border space-y-4 max-h-[90vh] overflow-y-auto"
+              >
+                <div className="flex items-center justify-between border-b pb-3">
+                  <div>
+                    <h3 className="text-base font-bold text-brand-primaryDark">Edit Gallery Photograph</h3>
+                    <p className="text-[11px] text-brand-muted">Update photograph title, location, category, and replace image.</p>
+                  </div>
+                  <button type="button" onClick={() => setEditingPhoto(null)} className="text-brand-muted hover:text-brand-text p-1">
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-brand-muted mb-1">Photograph Title / Caption</label>
+                  <input
+                    value={editingPhoto.title}
+                    onChange={(e) => setEditingPhoto({ ...editingPhoto, title: e.target.value })}
+                    required
+                    className="w-full px-3 py-2 text-xs rounded-xl border border-brand-border focus:ring-2 focus:ring-brand-primary outline-hidden"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[11px] font-bold text-brand-muted mb-1">Category</label>
+                    <select
+                      value={editingPhoto.category}
+                      onChange={(e) => setEditingPhoto({ ...editingPhoto, category: e.target.value as any })}
+                      className="w-full px-3 py-2 text-xs rounded-xl border border-brand-border focus:ring-2 focus:ring-brand-primary outline-hidden"
+                    >
+                      <option value="BLOOD_CAMP">Blood Donation Camps</option>
+                      <option value="MEDICAL_OUTREACH">Medical Diagnostics</option>
+                      <option value="COMMUNITY">Annadanam & Community</option>
+                      <option value="CHILD_WELFARE">Child Welfare & Education</option>
+                      <option value="DISASTER_RELIEF">Disaster Relief</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold text-brand-muted mb-1">Date</label>
+                    <input
+                      type="date"
+                      value={editingPhoto.date}
+                      onChange={(e) => setEditingPhoto({ ...editingPhoto, date: e.target.value })}
+                      required
+                      className="w-full px-3 py-2 text-xs rounded-xl border border-brand-border focus:ring-2 focus:ring-brand-primary outline-hidden"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-brand-muted mb-1">Location</label>
+                  <input
+                    value={editingPhoto.location}
+                    onChange={(e) => setEditingPhoto({ ...editingPhoto, location: e.target.value })}
+                    required
+                    className="w-full px-3 py-2 text-xs rounded-xl border border-brand-border focus:ring-2 focus:ring-brand-primary outline-hidden"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-brand-muted mb-1">Description</label>
+                  <textarea
+                    value={editingPhoto.description}
+                    onChange={(e) => setEditingPhoto({ ...editingPhoto, description: e.target.value })}
+                    rows={3}
+                    className="w-full px-3 py-2 text-xs rounded-xl border border-brand-border focus:ring-2 focus:ring-brand-primary outline-hidden"
+                  />
+                </div>
+
+                {/* Persistent Image Uploader */}
+                <CMSImageUploader
+                  label="Gallery Photograph"
+                  currentImageUrl={editingPhoto.imageUrl}
+                  onImageChanged={(newUrl) => setEditingPhoto({ ...editingPhoto, imageUrl: newUrl })}
+                  helperText="Upload PNG, JPG, WebP file or paste external image URL"
+                />
+
+                <div className="flex items-center gap-2 pt-2 border-t">
+                  <input
+                    type="checkbox"
+                    id="editPhotoAppr"
+                    checked={editingPhoto.isApproved}
+                    onChange={(e) => setEditingPhoto({ ...editingPhoto, isApproved: e.target.checked })}
+                    className="rounded text-brand-primary focus:ring-brand-primary"
+                  />
+                  <label htmlFor="editPhotoAppr" className="text-xs font-semibold text-brand-text">
+                    Approved & Visible on Public Homepage Gallery
+                  </label>
+                </div>
+
+                <div className="flex justify-end gap-2 pt-3 border-t">
+                  <button
+                    type="button"
+                    onClick={() => setEditingPhoto(null)}
+                    className="px-4 py-2 text-xs font-bold rounded-xl border border-brand-border hover:bg-gray-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-5 py-2 bg-brand-primary hover:bg-brand-primaryDark text-white text-xs font-bold rounded-xl shadow-xs"
+                  >
+                    Save Changes
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
         </div>
       )}
 
@@ -1299,11 +1711,121 @@ export default function AdminContentManagementPage() {
                     {campaign.published ? 'Published Live' : 'Hidden'}
                   </button>
 
-                  <span className="text-[10px] text-brand-muted">{campaign.donorsCount} Donors</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] text-brand-muted">{campaign.donorsCount} Donors</span>
+                    <button
+                      type="button"
+                      onClick={() => setEditingCampaign(campaign)}
+                      className="text-brand-primary hover:text-brand-primaryDark p-1.5 rounded-lg hover:bg-purple-50 transition-colors"
+                      title="Edit Campaign"
+                    >
+                      <Edit3 className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
           </div>
+
+          {/* Edit Campaign Modal */}
+          {editingCampaign && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in">
+              <form
+                onSubmit={handleSaveEditedCampaign}
+                className="bg-white rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl border border-brand-border space-y-4 max-h-[90vh] overflow-y-auto"
+              >
+                <div className="flex items-center justify-between border-b pb-3">
+                  <div>
+                    <h3 className="text-base font-bold text-brand-primaryDark">Edit Donation Campaign</h3>
+                    <p className="text-[11px] text-brand-muted">Update campaign targets, descriptions, and replacement image.</p>
+                  </div>
+                  <button type="button" onClick={() => setEditingCampaign(null)} className="text-brand-muted hover:text-brand-text p-1">
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-brand-muted mb-1">Campaign Title</label>
+                  <input
+                    value={editingCampaign.title}
+                    onChange={(e) => setEditingCampaign({ ...editingCampaign, title: e.target.value })}
+                    required
+                    className="w-full px-3 py-2 text-xs rounded-xl border border-brand-border focus:ring-2 focus:ring-brand-primary outline-hidden"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[11px] font-bold text-brand-muted mb-1">Category</label>
+                    <input
+                      value={editingCampaign.category}
+                      onChange={(e) => setEditingCampaign({ ...editingCampaign, category: e.target.value })}
+                      required
+                      className="w-full px-3 py-2 text-xs rounded-xl border border-brand-border focus:ring-2 focus:ring-brand-primary outline-hidden"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold text-brand-muted mb-1">Target Amount (₹)</label>
+                    <input
+                      type="number"
+                      value={editingCampaign.targetAmount}
+                      onChange={(e) => setEditingCampaign({ ...editingCampaign, targetAmount: parseInt(e.target.value, 10) || 0 })}
+                      min={1000}
+                      className="w-full px-3 py-2 text-xs rounded-xl border border-brand-border focus:ring-2 focus:ring-brand-primary outline-hidden"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-brand-muted mb-1">Description</label>
+                  <textarea
+                    value={editingCampaign.description}
+                    onChange={(e) => setEditingCampaign({ ...editingCampaign, description: e.target.value })}
+                    rows={3}
+                    required
+                    className="w-full px-3 py-2 text-xs rounded-xl border border-brand-border focus:ring-2 focus:ring-brand-primary outline-hidden"
+                  />
+                </div>
+
+                {/* Persistent Image Uploader */}
+                <CMSImageUploader
+                  label="Campaign Banner Image"
+                  currentImageUrl={editingCampaign.imageUrl}
+                  onImageChanged={(newUrl) => setEditingCampaign({ ...editingCampaign, imageUrl: newUrl })}
+                  helperText="Upload PNG, JPG, WebP file or paste external image URL"
+                />
+
+                <div className="flex items-center gap-2 pt-2 border-t">
+                  <input
+                    type="checkbox"
+                    id="editCampPub"
+                    checked={editingCampaign.published !== false}
+                    onChange={(e) => setEditingCampaign({ ...editingCampaign, published: e.target.checked })}
+                    className="rounded text-brand-primary focus:ring-brand-primary"
+                  />
+                  <label htmlFor="editCampPub" className="text-xs font-semibold text-brand-text">
+                    Publish Live on Homepage
+                  </label>
+                </div>
+
+                <div className="flex justify-end gap-2 pt-3 border-t">
+                  <button
+                    type="button"
+                    onClick={() => setEditingCampaign(null)}
+                    className="px-4 py-2 text-xs font-bold rounded-xl border border-brand-border hover:bg-gray-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-5 py-2 bg-brand-primary hover:bg-brand-primaryDark text-white text-xs font-bold rounded-xl shadow-xs"
+                  >
+                    Save Changes
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
 
           {/* New Campaign Modal */}
           {newCampaignModal && (
