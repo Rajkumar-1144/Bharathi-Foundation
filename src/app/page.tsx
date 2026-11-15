@@ -385,8 +385,8 @@ export default function HomePage() {
                 <Heart className="w-5 h-5 fill-current" />
               </div>
             </div>
-            <p className="text-3xl font-black text-brand-primaryDark tracking-tight" suppressHydrationWarning>
-              {computedStats.formatStatValue(computedStats.livesImpacted, statsConfig?.livesImpacted?.format)}
+            <p className="text-3xl font-black text-brand-primaryDark tracking-tight">
+              {isMounted ? computedStats.formatStatValue(computedStats.livesImpacted, statsConfig?.livesImpacted?.format) : '—'}
             </p>
             <p className="text-[11px] text-brand-muted mt-1.5 font-medium line-clamp-2">
               Verified beneficiaries from medical & food camps
@@ -403,8 +403,8 @@ export default function HomePage() {
                 <Users className="w-5 h-5" />
               </div>
             </div>
-            <p className="text-3xl font-black text-brand-secondaryDark tracking-tight" suppressHydrationWarning>
-              {computedStats.formatStatValue(computedStats.activeVolunteers, statsConfig?.activeVolunteers?.format)}
+            <p className="text-3xl font-black text-brand-secondaryDark tracking-tight">
+              {isMounted ? computedStats.formatStatValue(computedStats.activeVolunteers, statsConfig?.activeVolunteers?.format) : '—'}
             </p>
             <p className="text-[11px] text-brand-muted mt-1.5 font-medium line-clamp-2">
               Approved active volunteers on the ground
@@ -421,8 +421,8 @@ export default function HomePage() {
                 <Tent className="w-5 h-5" />
               </div>
             </div>
-            <p className="text-3xl font-black text-brand-primary tracking-tight" suppressHydrationWarning>
-              {computedStats.formatStatValue(computedStats.campsCount, statsConfig?.campsCount?.format)}
+            <p className="text-3xl font-black text-brand-primary tracking-tight">
+              {isMounted ? computedStats.formatStatValue(computedStats.campsCount, statsConfig?.campsCount?.format) : '—'}
             </p>
             <p className="text-[11px] text-brand-muted mt-1.5 font-medium line-clamp-2">
               Certified health outreach & blood camps
@@ -439,12 +439,14 @@ export default function HomePage() {
                 <Award className="w-5 h-5" />
               </div>
             </div>
-            <p className="text-3xl font-black text-emerald-600 tracking-tight" suppressHydrationWarning>
-              {computedStats.welfareRaised >= 10000000
-                ? `₹${(computedStats.welfareRaised / 10000000).toFixed(1)} Cr+`
-                : computedStats.welfareRaised >= 100000
-                ? `₹${(computedStats.welfareRaised / 100000).toFixed(1)} L+`
-                : `₹${computedStats.welfareRaised.toLocaleString('en-IN')}`}
+            <p className="text-3xl font-black text-emerald-600 tracking-tight">
+              {isMounted
+                ? computedStats.welfareRaised >= 10000000
+                  ? `₹${(computedStats.welfareRaised / 10000000).toFixed(1)} Cr+`
+                  : computedStats.welfareRaised >= 100000
+                  ? `₹${(computedStats.welfareRaised / 100000).toFixed(1)} L+`
+                  : `₹${computedStats.welfareRaised.toLocaleString('en-IN')}`
+                : '—'}
             </p>
             <p className="text-[11px] text-brand-muted mt-1.5 font-medium line-clamp-2">
               100% verified transparent contributions
@@ -461,8 +463,8 @@ export default function HomePage() {
                 <UserCheck className="w-5 h-5" />
               </div>
             </div>
-            <p className="text-3xl font-black text-amber-600 tracking-tight" suppressHydrationWarning>
-              {computedStats.formatStatValue(computedStats.communityMembers, statsConfig?.communityMembers?.format)}
+            <p className="text-3xl font-black text-amber-600 tracking-tight">
+              {isMounted ? computedStats.formatStatValue(computedStats.communityMembers, statsConfig?.communityMembers?.format) : '—'}
             </p>
             <p className="text-[11px] text-brand-muted mt-1.5 font-medium line-clamp-2">
               Unique registered stakeholders across portals
@@ -479,8 +481,8 @@ export default function HomePage() {
                 <Globe className="w-5 h-5" />
               </div>
             </div>
-            <p className="text-3xl font-black text-brand-primaryDark tracking-tight" suppressHydrationWarning>
-              {computedStats.formatStatValue(computedStats.connectedReach, statsConfig?.connectedReach?.format)}
+            <p className="text-3xl font-black text-brand-primaryDark tracking-tight">
+              {isMounted ? computedStats.formatStatValue(computedStats.connectedReach, statsConfig?.connectedReach?.format) : '—'}
             </p>
             <p className="text-[11px] text-brand-muted mt-1.5 font-medium line-clamp-2">
               Verified unique individuals across volunteers, NGOs & donors
