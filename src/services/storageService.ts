@@ -102,10 +102,34 @@ export const storageService = {
       }
       if (key === STORAGE_KEYS.WEBSITE_CONTENT) {
         const parsed = JSON.parse(item);
-        if (!parsed.heroHeading || !parsed.heroHeading.includes('Lives Touched') || !parsed.missionText?.includes("mother's love")) {
-          const updated = { ...parsed, ...defaultValue };
+        const hasServices = Array.isArray(parsed?.servicesList) && parsed.servicesList.length > 0;
+        const hasStories = Array.isArray(parsed?.impactStoriesList) && parsed.impactStoriesList.length > 0;
+        const hasCampaigns = Array.isArray(parsed?.donationCampaignsList) && parsed.donationCampaignsList.length > 0;
+
+        if (
+          !hasServices ||
+          !hasStories ||
+          !hasCampaigns ||
+          !parsed.heroHeading ||
+          !parsed.heroHeading.includes('Lives Touched') ||
+          !parsed.missionText?.includes("mother's love")
+        ) {
+          const updated = {
+            ...defaultValue,
+            ...parsed,
+            servicesList: hasServices ? parsed.servicesList : (defaultValue as any).servicesList,
+            impactStoriesList: hasStories ? parsed.impactStoriesList : (defaultValue as any).impactStoriesList,
+            donationCampaignsList: hasCampaigns ? parsed.donationCampaignsList : (defaultValue as any).donationCampaignsList,
+          };
           localStorage.setItem(key, JSON.stringify(updated));
           return updated as T;
+        }
+      }
+      if (key === STORAGE_KEYS.GALLERY) {
+        const parsed = JSON.parse(item);
+        if (!Array.isArray(parsed) || parsed.length === 0 || !parsed.some((g: any) => g.isApproved)) {
+          localStorage.setItem(key, JSON.stringify(defaultValue));
+          return defaultValue;
         }
       }
       return JSON.parse(item) as T;

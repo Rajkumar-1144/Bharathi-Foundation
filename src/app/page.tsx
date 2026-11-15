@@ -7,6 +7,7 @@ import { Navbar } from '@/components/common/Navbar';
 import { Footer } from '@/components/common/Footer';
 import { useAppData } from '@/context/AppDataContext';
 import { TRANSLATIONS } from '@/translations';
+import { INITIAL_WEBSITE_CONTENT, INITIAL_GALLERY } from '@/data/initialData';
 import {
   Heart,
   Droplet,
@@ -131,12 +132,15 @@ export default function HomePage() {
   const [contactMsg, setContactMsg] = useState('');
   const [contactSent, setContactSent] = useState(false);
 
-  // Filter approved gallery items
-  const approvedGallery = gallery.filter((item) => item.isApproved);
+  // Filter approved gallery items (guaranteed fallback to default verified field photos)
+  const defaultGallery = INITIAL_GALLERY || [];
+  const rawGallery = (gallery && gallery.length > 0) ? gallery : defaultGallery;
+  const approvedGallery = rawGallery.filter((item) => item.isApproved);
+  const displayGallery = approvedGallery.length > 0 ? approvedGallery : defaultGallery.filter((item) => item.isApproved !== false);
   const filteredGallery =
     galleryFilter === 'ALL'
-      ? approvedGallery.slice(0, 6)
-      : approvedGallery.filter((item) => item.category === galleryFilter).slice(0, 6);
+      ? displayGallery.slice(0, 6)
+      : displayGallery.filter((item) => item.category === galleryFilter).slice(0, 6);
 
   // Copy UPI ID
   const handleCopyUpi = () => {
@@ -210,14 +214,29 @@ export default function HomePage() {
     }, 4000);
   };
 
-  // Dynamic services list from CMS
-  const activeServices = (websiteContent.servicesList || []).filter((s) => s.published !== false);
+  // Dynamic services list from CMS with guaranteed fallback to default 6 core services
+  const defaultServices = INITIAL_WEBSITE_CONTENT.servicesList || [];
+  const rawServices = (websiteContent?.servicesList && websiteContent.servicesList.length > 0)
+    ? websiteContent.servicesList
+    : defaultServices;
+  const filteredServices = rawServices.filter((s) => s.published !== false);
+  const activeServices = filteredServices.length > 0 ? filteredServices : defaultServices;
 
-  // Dynamic impact stories from CMS
-  const activeStories = (websiteContent.impactStoriesList || []).filter((s) => s.published !== false);
+  // Dynamic impact stories from CMS with guaranteed fallback
+  const defaultStories = INITIAL_WEBSITE_CONTENT.impactStoriesList || [];
+  const rawStories = (websiteContent?.impactStoriesList && websiteContent.impactStoriesList.length > 0)
+    ? websiteContent.impactStoriesList
+    : defaultStories;
+  const filteredStories = rawStories.filter((s) => s.published !== false);
+  const activeStories = filteredStories.length > 0 ? filteredStories : defaultStories;
 
-  // Dynamic campaigns from CMS
-  const activeCampaigns = (websiteContent.donationCampaignsList || []).filter((c) => c.published !== false);
+  // Dynamic campaigns from CMS with guaranteed fallback
+  const defaultCampaigns = INITIAL_WEBSITE_CONTENT.donationCampaignsList || [];
+  const rawCampaigns = (websiteContent?.donationCampaignsList && websiteContent.donationCampaignsList.length > 0)
+    ? websiteContent.donationCampaignsList
+    : defaultCampaigns;
+  const filteredCampaigns = rawCampaigns.filter((c) => c.published !== false);
+  const activeCampaigns = filteredCampaigns.length > 0 ? filteredCampaigns : defaultCampaigns;
 
   // Care homes (published)
   const oldAgeHomes = careHomes.filter((h) => h.type === 'OLD_AGE' && h.status === 'PUBLISHED');
@@ -847,7 +866,7 @@ export default function HomePage() {
       </section>
 
       {/* ========================================================================= */}
-      {/* 8. IMPACT STORIES & VISUAL GALLERY (Dynamic CMS Managed with Lightbox)     */}
+      {/* 8. MOMENTS OF SERVICE & GROUND GALLERY (Dynamic CMS Managed with Lightbox) */}
       {/* ========================================================================= */}
       <section className="py-24 sm:py-32 bg-brand-bgLight/60 border-t border-brand-border/70" id="gallery">
         <div className="max-w-7xl 2xl:max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-12 space-y-12">
@@ -857,58 +876,142 @@ export default function HomePage() {
                 Visual Proof of Change
               </span>
               <h2 className="text-3xl sm:text-5xl font-black text-brand-primaryDark font-serif tracking-tight">
-                {t.galleryTitle || 'Impact Stories & Ground Gallery'}
+                {t.galleryTitle || 'Moments of Service'}
               </h2>
               <p className="text-base sm:text-lg text-brand-muted max-w-2xl">
-                Every photo represents a real life touched, a meal shared, a senior cared for, or an emergency averted.
+                Real, unedited ground moments from our medical outreach, blood donation camps, elder care shelters, and community food drives.
               </p>
             </div>
             <Link
               href="/gallery"
-              className="inline-flex items-center gap-2 text-sm font-bold text-brand-primary hover:text-brand-primaryDark bg-white px-6 py-3 rounded-full border border-brand-border shadow-xs"
+              className="inline-flex items-center gap-2 text-sm font-bold text-brand-primary hover:text-brand-primaryDark bg-white px-6 py-3 rounded-full border border-brand-border shadow-xs hover:shadow-md transition-all"
             >
               <span>Explore Full Photo Archives</span>
               <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
 
-          {/* Impact Stories Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {activeStories.map((story) => (
+          {/* Category Filter Tabs for Moments of Service */}
+          <div className="flex flex-wrap items-center gap-2">
+            {[
+              { label: 'All Moments', value: 'ALL' },
+              { label: 'Blood Donation Drives', value: 'BLOOD_CAMP' },
+              { label: 'Medical Diagnostics', value: 'MEDICAL_OUTREACH' },
+              { label: 'Annadanam & Community', value: 'COMMUNITY' },
+              { label: 'Child Welfare & Education', value: 'CHILD_WELFARE' },
+              { label: 'Disaster Relief', value: 'DISASTER_RELIEF' },
+            ].map((cat) => (
+              <button
+                key={cat.value}
+                type="button"
+                onClick={() => setGalleryFilter(cat.value)}
+                className={`text-xs font-bold px-4 py-2 rounded-full transition-all cursor-pointer ${
+                  galleryFilter === cat.value
+                    ? 'bg-brand-primary text-white shadow-md'
+                    : 'bg-white text-brand-text border border-brand-border hover:bg-purple-50'
+                }`}
+              >
+                {cat.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Moments of Service Photo Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredGallery.map((item) => (
               <div
-                key={story.id}
+                key={item.id}
                 onClick={() =>
                   setActivePhoto({
-                    title: story.title,
-                    description: story.description,
-                    imageUrl: story.images[0],
-                    location: story.location,
-                    date: story.date,
-                    category: story.category,
+                    title: item.title,
+                    description: item.description,
+                    imageUrl: item.imageUrl,
+                    location: item.location,
+                    date: item.date,
+                    category: item.category,
                   })
                 }
-                className="group relative rounded-3xl overflow-hidden bg-purple-900 border border-brand-border shadow-md hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 cursor-pointer h-80"
+                className="group relative h-72 rounded-3xl overflow-hidden cursor-pointer shadow-md hover:shadow-2xl transition-all duration-300 hover:-translate-y-1.5 border border-brand-border bg-purple-950"
               >
                 <Image
-                  src={story.images[0] || 'https://images.unsplash.com/photo-1516307365426-bea591f05011?auto=format&fit=crop&q=80&w=800'}
-                  alt={story.title}
+                  src={item.imageUrl}
+                  alt={item.title}
                   fill
-                  className="object-cover group-hover:scale-110 transition-transform duration-700 opacity-90 group-hover:opacity-100"
+                  className="object-cover group-hover:scale-105 transition-transform duration-500 opacity-90 group-hover:opacity-100"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
-                <span className="absolute top-4 left-4 bg-white/90 text-brand-primary text-[10px] font-bold px-2.5 py-1 rounded-full">
-                  {story.category}
-                </span>
-                <div className="absolute bottom-5 left-5 right-5 text-white space-y-1">
-                  <h4 className="text-base font-bold line-clamp-2 leading-snug">{story.title}</h4>
-                  <p className="text-[11px] text-purple-200 flex items-center gap-1">
-                    <MapPin className="w-3 h-3 text-purple-300" />
-                    <span>{story.location}</span>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
+
+                <div className="absolute top-4 left-4">
+                  <span className="text-[10px] font-black uppercase tracking-wider bg-white/95 text-brand-primary px-3 py-1 rounded-full shadow-md">
+                    {item.category.replace('_', ' ')}
+                  </span>
+                </div>
+
+                <div className="absolute bottom-5 inset-x-5 text-white space-y-1">
+                  <h4 className="font-bold text-base line-clamp-2 leading-snug drop-shadow-sm">{item.title}</h4>
+                  <p className="text-xs text-purple-200 flex items-center gap-1.5">
+                    <MapPin className="w-3.5 h-3.5 text-purple-300 shrink-0" />
+                    <span>{item.location}</span>
+                    <span className="text-purple-400">•</span>
+                    <span>{item.date}</span>
                   </p>
+                </div>
+
+                <div className="absolute top-4 right-4 w-9 h-9 rounded-full bg-white/90 backdrop-blur-xs text-brand-primary flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-md">
+                  <Eye className="w-4 h-4" />
                 </div>
               </div>
             ))}
           </div>
+
+          {/* Stories of Compassion (Documented Transformations) */}
+          {activeStories.length > 0 && (
+            <div className="pt-8 border-t border-brand-border/70 space-y-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <span className="text-xs font-bold uppercase tracking-wider text-brand-primary">Documented Transformations</span>
+                  <h3 className="text-xl sm:text-2xl font-black text-brand-primaryDark font-serif">Stories of Compassion</h3>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {activeStories.map((story) => (
+                  <div
+                    key={story.id}
+                    onClick={() =>
+                      setActivePhoto({
+                        title: story.title,
+                        description: story.description,
+                        imageUrl: story.images[0],
+                        location: story.location,
+                        date: story.date,
+                        category: story.category,
+                      })
+                    }
+                    className="group relative rounded-3xl overflow-hidden bg-purple-900 border border-brand-border shadow-md hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 cursor-pointer h-72"
+                  >
+                    <Image
+                      src={story.images[0] || 'https://images.unsplash.com/photo-1516307365426-bea591f05011?auto=format&fit=crop&q=80&w=800'}
+                      alt={story.title}
+                      fill
+                      className="object-cover group-hover:scale-110 transition-transform duration-700 opacity-90 group-hover:opacity-100"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
+                    <span className="absolute top-4 left-4 bg-brand-primary text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-md">
+                      {story.category}
+                    </span>
+                    <div className="absolute bottom-5 left-5 right-5 text-white space-y-1">
+                      <h4 className="text-sm font-bold line-clamp-2 leading-snug">{story.title}</h4>
+                      <p className="text-[11px] text-purple-200 flex items-center gap-1">
+                        <MapPin className="w-3 h-3 text-purple-300" />
+                        <span>{story.location}</span>
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </section>
 
