@@ -146,8 +146,20 @@ export function Footer() {
               </li>
               <li className="flex items-center gap-2.5">
                 <Phone className="w-4 h-4 text-brand-secondary shrink-0" />
-                <a href={`tel:${websiteContent.contactPhone}`} className="hover:text-white transition-colors">
+                <a
+                  href={`tel:${(websiteContent.contactPhone || '+91 98765 43210').replace(/[^+\d]/g, '')}`}
+                  className="hover:text-white transition-colors"
+                >
                   {websiteContent.contactPhone}
+                </a>
+              </li>
+              <li className="flex items-center gap-2.5">
+                <Droplet className="w-4 h-4 text-red-400 fill-red-400 shrink-0" />
+                <a
+                  href={`tel:${(websiteContent.emergencyPhone || '+91 98765 43210').replace(/[^+\d]/g, '')}`}
+                  className="text-red-200 hover:text-white font-bold transition-colors"
+                >
+                  24/7 SOS Helpline: {websiteContent.emergencyPhone || '+91 98765 43210'}
                 </a>
               </li>
               <li className="flex items-center gap-2.5">

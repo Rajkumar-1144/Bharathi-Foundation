@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { AuthProvider } from '@/context/AuthContext';
 import { AppDataProvider } from '@/context/AppDataContext';
+import { FloatingWhatsAppSOS } from '@/components/common/FloatingWhatsAppSOS';
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://bharathifoundation.org'),
@@ -65,7 +66,10 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className="antialiased selection:bg-brand-secondary/30 selection:text-brand-primaryDark" suppressHydrationWarning>
         <AuthProvider>
-          <AppDataProvider>{children}</AppDataProvider>
+          <AppDataProvider>
+            {children}
+            <FloatingWhatsAppSOS />
+          </AppDataProvider>
         </AuthProvider>
       </body>
     </html>

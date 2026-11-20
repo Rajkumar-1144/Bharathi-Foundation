@@ -132,6 +132,30 @@ export const storageService = {
           return defaultValue;
         }
       }
+      if (key === STORAGE_KEYS.BLOOD_DONORS) {
+        const parsed = JSON.parse(item);
+        if (!Array.isArray(parsed) || parsed.length < INITIAL_BLOOD_DONORS.length) {
+          const existingIds = new Set(Array.isArray(parsed) ? parsed.map((d: any) => d.id) : []);
+          const merged = [
+            ...(Array.isArray(parsed) ? parsed : []),
+            ...INITIAL_BLOOD_DONORS.filter((id) => !existingIds.has(id.id)),
+          ];
+          localStorage.setItem(key, JSON.stringify(merged));
+          return merged as T;
+        }
+      }
+      if (key === STORAGE_KEYS.CAMPS) {
+        const parsed = JSON.parse(item);
+        if (!Array.isArray(parsed) || parsed.length < INITIAL_CAMPS.length) {
+          const existingIds = new Set(Array.isArray(parsed) ? parsed.map((c: any) => c.id) : []);
+          const merged = [
+            ...(Array.isArray(parsed) ? parsed : []),
+            ...INITIAL_CAMPS.filter((ic) => !existingIds.has(ic.id)),
+          ];
+          localStorage.setItem(key, JSON.stringify(merged));
+          return merged as T;
+        }
+      }
       return JSON.parse(item) as T;
     } catch (e) {
       console.error(`Error reading ${key} from localStorage:`, e);

@@ -64,25 +64,30 @@ export function Navbar() {
       <div className="bg-[#371555] text-white text-xs py-2 px-4 sm:px-6 lg:px-8 border-b border-purple-900/40">
         <div className="max-w-7xl 2xl:max-w-[1536px] mx-auto flex flex-wrap justify-between items-center gap-2">
           <div className="flex items-center gap-2 text-[11px] sm:text-xs">
-            <span className="bg-red-500 text-white font-bold px-2.5 py-0.5 rounded-full text-[10px] uppercase tracking-wider animate-pulse flex items-center gap-1">
+            <a
+              href="tel:+919876543210"
+              className="bg-red-600 hover:bg-red-700 text-white font-bold px-2.5 py-0.5 rounded-full text-[10px] uppercase tracking-wider animate-pulse flex items-center gap-1 shadow-xs transition-colors cursor-pointer"
+              title="Click to dial 24/7 Blood SOS Hotline"
+            >
               <Droplet className="w-3 h-3 fill-white" />
               <span>SOS Helpline</span>
-            </span>
+            </a>
             <span className="hidden sm:inline text-purple-100">
               Urgent need for O- and B+ blood donors at City Civil Hospital
             </span>
-            <span className="sm:hidden text-purple-100">Urgent O- & B+ Blood Needed</span>
+            <span className="sm:hidden text-purple-100 font-medium">Urgent O- & B+ Needed</span>
           </div>
 
-          <div className="flex items-center gap-4 text-[11px]">
+          <div className="flex items-center gap-3 text-[11px]">
             <a
               href="tel:+919876543210"
-              className="hidden md:flex items-center gap-1 text-purple-200 hover:text-white transition-colors"
+              className="flex items-center gap-1.5 text-purple-200 hover:text-white font-bold transition-colors"
+              title="Call 24/7 Blood Dispatch Hotline"
             >
-              <Phone className="w-3 h-3 text-brand-secondary" />
+              <Phone className="w-3 h-3 text-brand-secondary shrink-0" />
               <span>24/7 Helpline: +91 98765 43210</span>
             </a>
-            <span className="text-brand-secondary font-bold bg-white/10 px-2 py-0.5 rounded">
+            <span className="hidden md:inline-block text-brand-secondary font-bold bg-white/10 px-2 py-0.5 rounded">
               80G Tax Exempt Public Trust
             </span>
           </div>
@@ -244,6 +249,14 @@ export function Navbar() {
           </nav>
 
           <div className="pt-4 border-t border-brand-border/60 flex flex-col gap-2">
+            <a
+              href="tel:+919876543210"
+              className="flex items-center justify-center gap-2 w-full bg-red-600 hover:bg-red-700 text-white py-2.5 rounded-xl text-xs font-black shadow-xs transition-colors"
+            >
+              <Droplet className="w-3.5 h-3.5 fill-white" />
+              <span>Emergency Blood SOS: +91 98765 43210</span>
+            </a>
+
             {isAuthenticated && currentUser ? (
               <>
                 <Link
