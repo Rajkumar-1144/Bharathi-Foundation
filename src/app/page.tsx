@@ -293,10 +293,10 @@ export default function HomePage() {
       <Navbar />
 
       {/* ========================================================================= */}
-      {/* 1. HERO SECTION (Dynamic from CMS, Full-Width Cinematic)                   */}
+      {/* 1. HERO SECTION (Dynamic from CMS, Full-Width Viewport-Calibrated)         */}
       {/* ========================================================================= */}
       {websiteContent.heroVisible !== false && (
-        <section className="relative w-full min-h-[85vh] lg:min-h-[90vh] flex items-center justify-center bg-[#240C38] overflow-hidden">
+        <section className="relative w-full min-h-[calc(100vh-7rem)] lg:min-h-[calc(100vh-7.5rem)] flex items-center justify-center bg-[#240C38] overflow-hidden">
           {/* Photographic Background */}
           <div className="absolute inset-0 z-0">
             <Image
@@ -319,69 +319,69 @@ export default function HomePage() {
           <div className="absolute bottom-1/4 -right-20 w-96 h-96 bg-brand-secondary/20 rounded-full blur-3xl pointer-events-none" />
 
           {/* Hero Content Container */}
-          <div className="relative z-10 w-full max-w-7xl 2xl:max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-12 py-20 lg:py-28">
-            <div className="max-w-4xl space-y-6 sm:space-y-8 text-center sm:text-left">
+          <div className="relative z-10 w-full max-w-7xl 2xl:max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-12 py-8 sm:py-10 lg:py-10 xl:py-14 flex flex-col justify-center">
+            <div className="max-w-4xl space-y-4 sm:space-y-5 lg:space-y-6 text-center sm:text-left">
               {/* Mission Badge */}
-              <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-purple-300/30 text-purple-200 text-xs sm:text-sm font-bold uppercase tracking-widest shadow-lg">
-                <Sparkles className="w-4 h-4 text-brand-secondary" />
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-purple-300/30 text-purple-200 text-xs sm:text-xs font-bold uppercase tracking-widest shadow-lg">
+                <Sparkles className="w-3.5 h-3.5 text-brand-secondary" />
                 <span>BHARATHI FOUNDATION • WE LOVE TO SERVE</span>
               </div>
 
               {/* Main Hero Display Heading */}
-              <h1 className="text-4xl sm:text-6xl lg:text-7xl font-bold font-serif text-white tracking-tight leading-[1.12]">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-5xl xl:text-6xl 2xl:text-7xl font-bold font-serif text-white tracking-tight leading-[1.14]">
                 {websiteContent.heroHeading || "One Mother's Dream, Countless Lives Touched."}
               </h1>
 
               {/* Emotion-driven Description */}
-              <p className="text-lg sm:text-xl lg:text-2xl text-purple-100/90 leading-relaxed font-normal max-w-3xl">
+              <p className="text-sm sm:text-base lg:text-lg xl:text-xl text-purple-100/90 leading-relaxed font-normal max-w-3xl">
                 {websiteContent.heroSubheading ||
                   "Inspired by a mother's endless love, Bharathi Foundation is dedicated to spreading kindness, serving those in need and making the world a more compassionate place, one life at a time."}
               </p>
 
               {/* Hero CTAs */}
-              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-4 pt-4">
+              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3 sm:gap-4 pt-1 sm:pt-2">
                 <Link
                   href={websiteContent.heroCta1Link || '/register?role=volunteer'}
-                  className="flex items-center justify-center gap-2.5 bg-gradient-to-r from-brand-secondary to-[#C4B5FD] hover:from-white hover:to-purple-100 text-brand-primaryDark px-7 py-4 rounded-full text-base sm:text-lg font-black shadow-xl hover:shadow-2xl transition-all hover:-translate-y-1 active:translate-y-0"
+                  className="flex items-center justify-center gap-2 bg-gradient-to-r from-brand-secondary to-[#C4B5FD] hover:from-white hover:to-purple-100 text-brand-primaryDark px-5 sm:px-6 py-3 sm:py-3.5 rounded-full text-sm sm:text-base font-black shadow-xl hover:shadow-2xl transition-all hover:-translate-y-0.5 active:translate-y-0 whitespace-nowrap"
                 >
-                  <Users className="w-5 h-5 text-brand-primaryDark" />
+                  <Users className="w-4 h-4 sm:w-5 sm:h-5 text-brand-primaryDark" />
                   <span>{websiteContent.heroCta1Text || 'Join as Volunteer'}</span>
                 </Link>
 
                 <a
                   href={websiteContent.heroCta2Link || '#donation-campaigns'}
-                  className="flex items-center justify-center gap-2.5 bg-white/10 hover:bg-white/20 text-white border-2 border-white/40 hover:border-white px-7 py-4 rounded-full text-base sm:text-lg font-bold backdrop-blur-md transition-all hover:-translate-y-1"
+                  className="flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 text-white border-2 border-white/40 hover:border-white px-5 sm:px-6 py-3 sm:py-3.5 rounded-full text-sm sm:text-base font-bold backdrop-blur-md transition-all hover:-translate-y-0.5 whitespace-nowrap"
                 >
-                  <Heart className="w-5 h-5 text-red-400 fill-red-400 animate-pulse" />
+                  <Heart className="w-4 h-4 sm:w-5 sm:h-5 text-red-400 fill-red-400 animate-pulse" />
                   <span>{websiteContent.heroCta2Text || 'Donate Now'}</span>
                 </a>
 
                 <Link
                   href="/blood-donation"
-                  className="flex items-center justify-center gap-2.5 bg-gradient-to-r from-red-600 via-rose-600 to-[#7C3AED] hover:from-red-500 hover:to-purple-600 text-white border border-red-400/50 hover:border-red-300 px-7 py-4 rounded-full text-base sm:text-lg font-bold shadow-xl hover:shadow-2xl transition-all hover:-translate-y-1 active:translate-y-0 group"
+                  className="flex items-center justify-center gap-2 bg-gradient-to-r from-red-600 via-rose-600 to-[#7C3AED] hover:from-red-500 hover:to-purple-600 text-white border border-red-400/50 hover:border-red-300 px-5 sm:px-6 py-3 sm:py-3.5 rounded-full text-sm sm:text-base font-bold shadow-xl hover:shadow-2xl transition-all hover:-translate-y-0.5 active:translate-y-0 group whitespace-nowrap"
                 >
-                  <Droplet className="w-5 h-5 text-red-200 fill-red-200 group-hover:scale-110 transition-transform animate-pulse" />
+                  <Droplet className="w-4 h-4 sm:w-5 sm:h-5 text-red-200 fill-red-200 group-hover:scale-110 transition-transform animate-pulse" />
                   <span>Raise Emergency Blood Request</span>
                 </Link>
               </div>
 
               {/* Trust Accreditations Strip */}
-              <div className="pt-8 border-t border-white/15 grid grid-cols-2 sm:grid-cols-4 gap-4 text-left">
-                <div className="flex items-center gap-2.5 text-xs sm:text-sm text-purple-200">
-                  <ShieldCheck className="w-5 h-5 text-emerald-400 shrink-0" />
-                  <span className="font-semibold">80G Tax Exempt Public Trust</span>
+              <div className="pt-4 sm:pt-5 border-t border-white/15 grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-4 text-left">
+                <div className="flex items-center gap-2 text-xs sm:text-sm text-purple-200">
+                  <ShieldCheck className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-400 shrink-0" />
+                  <span className="font-semibold text-xs sm:text-sm">80G Tax Exempt Public Trust</span>
                 </div>
-                <div className="flex items-center gap-2.5 text-xs sm:text-sm text-purple-200">
-                  <CheckCircle2 className="w-5 h-5 text-brand-secondary shrink-0" />
-                  <span className="font-semibold">100% Direct Grassroots Giving</span>
+                <div className="flex items-center gap-2 text-xs sm:text-sm text-purple-200">
+                  <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-brand-secondary shrink-0" />
+                  <span className="font-semibold text-xs sm:text-sm">100% Direct Grassroots Giving</span>
                 </div>
-                <div className="flex items-center gap-2.5 text-xs sm:text-sm text-purple-200">
-                  <Droplet className="w-5 h-5 text-red-400 shrink-0" />
-                  <span className="font-semibold">24x7 Emergency Blood Network</span>
+                <div className="flex items-center gap-2 text-xs sm:text-sm text-purple-200">
+                  <Droplet className="w-4 h-4 sm:w-5 sm:h-5 text-red-400 shrink-0" />
+                  <span className="font-semibold text-xs sm:text-sm">24x7 Emergency Blood Network</span>
                 </div>
-                <div className="flex items-center gap-2.5 text-xs sm:text-sm text-purple-200">
-                  <UtensilsCrossed className="w-5 h-5 text-amber-400 shrink-0" />
-                  <span className="font-semibold">Daily Warm Meal Drives</span>
+                <div className="flex items-center gap-2 text-xs sm:text-sm text-purple-200">
+                  <UtensilsCrossed className="w-4 h-4 sm:w-5 sm:h-5 text-amber-400 shrink-0" />
+                  <span className="font-semibold text-xs sm:text-sm">Daily Warm Meal Drives</span>
                 </div>
               </div>
             </div>
@@ -392,7 +392,7 @@ export default function HomePage() {
       {/* ========================================================================= */}
       {/* 2. DYNAMIC IMPACT STATISTICS (6 Required Dynamic Stats + Reach Metric)    */}
       {/* ========================================================================= */}
-      <section className="relative z-20 -mt-10 sm:-mt-14 max-w-7xl 2xl:max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-12 w-full" suppressHydrationWarning>
+      <section className="relative z-20 -mt-8 sm:-mt-10 lg:-mt-12 max-w-7xl 2xl:max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-12 w-full" suppressHydrationWarning>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 sm:gap-5">
           {/* Stat 1: Lives Impacted */}
           <div className="p-6 rounded-3xl bg-white border border-brand-border shadow-xl hover:shadow-2xl transition-all hover:-translate-y-1 group">

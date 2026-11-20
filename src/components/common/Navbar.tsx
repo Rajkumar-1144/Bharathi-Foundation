@@ -95,21 +95,21 @@ export function Navbar() {
       </div>
 
       {/* Main Navbar */}
-      <div className="max-w-7xl 2xl:max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-4">
+      <div className="w-full max-w-7xl 2xl:max-w-[1600px] mx-auto px-3 sm:px-5 lg:px-6 2xl:px-8 h-20 flex items-center justify-between gap-2 xl:gap-3 2xl:gap-4">
         {/* Brand Logo - Aligned to Left */}
         <div className="flex items-center shrink-0">
           <Logo size="md" priority href="/" />
         </div>
 
         {/* Desktop Navigation Links */}
-        <nav className="hidden xl:flex items-center space-x-1">
+        <nav className="hidden xl:flex items-center space-x-0.5 2xl:space-x-1">
           {navLinks.map((link) => {
             const isActive = pathname === link.href;
             return (
               <Link
                 key={link.href}
                 href={link.href}
-                className={`px-3.5 py-2 rounded-xl text-sm font-semibold transition-all ${
+                className={`px-2 xl:px-2.5 2xl:px-3.5 py-1.5 2xl:py-2 rounded-xl text-xs xl:text-[13px] 2xl:text-sm font-semibold transition-all whitespace-nowrap ${
                   isActive
                     ? 'text-brand-primary font-bold bg-brand-bgLight shadow-2xs'
                     : 'text-brand-text hover:text-brand-primary hover:bg-brand-bgLight/70'
@@ -122,11 +122,11 @@ export function Navbar() {
         </nav>
 
         {/* Right CTA Actions */}
-        <div className="hidden sm:flex items-center gap-3 shrink-0">
+        <div className="hidden sm:flex items-center gap-2 xl:gap-2.5 2xl:gap-3 shrink-0">
           {/* Language Switcher Pill */}
           <button
             onClick={() => setLanguage(language === 'en' ? 'te' : 'en')}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-brand-border bg-brand-bgLight hover:bg-white text-xs font-bold text-brand-primary transition-all shadow-2xs hover:border-brand-secondary cursor-pointer"
+            className="flex items-center gap-1.5 px-2.5 xl:px-3 py-1.5 2xl:py-2 rounded-full border border-brand-border bg-brand-bgLight hover:bg-white text-xs font-bold text-brand-primary transition-all shadow-2xs hover:border-brand-secondary cursor-pointer whitespace-nowrap"
             title="Switch Language (English / తెలుగు)"
           >
             <Globe className="w-3.5 h-3.5 text-brand-secondaryDark" />
@@ -135,9 +135,9 @@ export function Navbar() {
 
           <Link
             href="/donate"
-            className="flex items-center gap-2 bg-gradient-to-r from-brand-primary to-[#6D28D9] hover:from-brand-primaryDark hover:to-brand-primary text-white px-5 py-2.5 rounded-full text-sm font-bold shadow-md hover:shadow-lg transition-all hover:-translate-y-0.5 active:translate-y-0"
+            className="flex items-center gap-1.5 xl:gap-2 bg-gradient-to-r from-brand-primary to-[#6D28D9] hover:from-brand-primaryDark hover:to-brand-primary text-white px-3.5 xl:px-4 2xl:px-5 py-2 2xl:py-2.5 rounded-full text-xs xl:text-xs 2xl:text-sm font-bold shadow-md hover:shadow-lg transition-all hover:-translate-y-0.5 active:translate-y-0 whitespace-nowrap"
           >
-            <Heart className="w-4 h-4 fill-white text-white animate-pulse" />
+            <Heart className="w-3.5 h-3.5 xl:w-4 xl:h-4 fill-white text-white animate-pulse shrink-0" />
             <span>{t.navDonateNow || 'Donate Now'}</span>
           </Link>
 
@@ -145,12 +145,12 @@ export function Navbar() {
             <div className="relative">
               <button
                 onClick={() => setDropdownOpen(!dropdownOpen)}
-                className="flex items-center gap-2 border border-brand-border bg-brand-bgLight hover:bg-white text-brand-primary font-medium px-3.5 py-2 rounded-full text-sm transition-all"
+                className="flex items-center gap-1.5 border border-brand-border bg-brand-bgLight hover:bg-white text-brand-primary font-medium px-3 xl:px-3.5 py-1.5 2xl:py-2 rounded-full text-xs xl:text-xs 2xl:text-sm transition-all whitespace-nowrap"
               >
-                <div className="w-7 h-7 rounded-full bg-brand-primary text-white flex items-center justify-center font-bold text-xs">
+                <div className="w-6 h-6 xl:w-7 xl:h-7 rounded-full bg-brand-primary text-white flex items-center justify-center font-bold text-xs">
                   {(currentUser.name || 'U').charAt(0)}
                 </div>
-                <span className="max-w-[120px] truncate font-bold text-xs">{currentUser.name || 'User'}</span>
+                <span className="max-w-[100px] xl:max-w-[120px] truncate font-bold text-xs">{currentUser.name || 'User'}</span>
                 <ChevronDown className="w-3.5 h-3.5 text-brand-muted" />
               </button>
 
@@ -189,9 +189,9 @@ export function Navbar() {
           ) : (
             <Link
               href="/login"
-              className="flex items-center gap-1.5 border border-brand-primary text-brand-primary hover:bg-brand-primary hover:text-white px-4 py-2 rounded-full text-sm font-bold transition-all"
+              className="flex items-center gap-1.5 border border-brand-primary text-brand-primary hover:bg-brand-primary hover:text-white px-3 xl:px-3.5 2xl:px-4 py-1.5 2xl:py-2 rounded-full text-xs xl:text-xs 2xl:text-sm font-bold transition-all whitespace-nowrap"
             >
-              <UserIcon className="w-4 h-4" />
+              <UserIcon className="w-3.5 h-3.5 xl:w-4 xl:h-4" />
               <span>{t.navLogin || 'Login'}</span>
             </Link>
           )}
