@@ -72,20 +72,56 @@ export default function AboutPage() {
 
           {/* Mission & Vision Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-8">
-            <div className="p-8 rounded-3xl bg-brand-bgLight border border-brand-border">
-              <div className="w-12 h-12 rounded-2xl bg-brand-primary text-white flex items-center justify-center font-bold mb-4">
+            <div className="p-8 rounded-3xl bg-brand-bgLight border border-brand-border shadow-xs hover:shadow-md transition-all">
+              <div className="w-12 h-12 rounded-2xl bg-brand-primary text-white flex items-center justify-center font-bold mb-4 shadow-xs">
                 <Award className="w-6 h-6" />
               </div>
-              <h3 className="text-2xl font-bold text-brand-primaryDark mb-2">Our Mission</h3>
+              <h3 className="text-2xl font-bold text-brand-primaryDark font-serif mb-2">Our Mission</h3>
               <p className="text-sm text-brand-muted leading-relaxed">{websiteContent.missionText}</p>
             </div>
 
-            <div className="p-8 rounded-3xl bg-brand-bgLight border border-brand-border">
-              <div className="w-12 h-12 rounded-2xl bg-brand-secondaryDark text-white flex items-center justify-center font-bold mb-4">
+            <div className="p-8 rounded-3xl bg-brand-bgLight border border-brand-border shadow-xs hover:shadow-md transition-all">
+              <div className="w-12 h-12 rounded-2xl bg-brand-secondaryDark text-white flex items-center justify-center font-bold mb-4 shadow-xs">
                 <Heart className="w-6 h-6" />
               </div>
-              <h3 className="text-2xl font-bold text-brand-primaryDark mb-2">Our Vision</h3>
+              <h3 className="text-2xl font-bold text-brand-primaryDark font-serif mb-2">Our Vision</h3>
               <p className="text-sm text-brand-muted leading-relaxed">{websiteContent.visionText}</p>
+            </div>
+          </div>
+
+          {/* Action CTA Banner */}
+          <div className="rounded-3xl bg-gradient-to-r from-[#240C38] via-[#371555] to-[#51247A] p-8 sm:p-12 text-white text-center space-y-6 shadow-xl">
+            <div className="max-w-2xl mx-auto space-y-2">
+              <span className="text-xs font-bold text-purple-200 uppercase tracking-widest bg-white/10 px-3 py-1 rounded-full border border-white/20">
+                Join Our Humanitarian Movement
+              </span>
+              <h3 className="text-2xl sm:text-4xl font-black font-serif text-white">
+                Be the Catalyst for Compassion
+              </h3>
+              <p className="text-sm text-purple-100/80 leading-relaxed">
+                Whether offering your time on the ground during weekend health drives or sponsoring daily meals for children and elders, your involvement directly touches human lives.
+              </p>
+            </div>
+
+            <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
+              <Link
+                href="/register?role=volunteer"
+                className="bg-brand-secondary hover:bg-white text-brand-primaryDark font-black px-6 py-3 rounded-full text-sm shadow-md transition-all hover:-translate-y-0.5"
+              >
+                Join as Volunteer
+              </Link>
+              <Link
+                href="/donate"
+                className="bg-white/15 hover:bg-white/25 text-white border border-white/40 font-bold px-6 py-3 rounded-full text-sm transition-all hover:-translate-y-0.5"
+              >
+                Support with a Donation
+              </Link>
+              <Link
+                href="/blood-donation"
+                className="bg-red-600 hover:bg-red-700 text-white font-bold px-6 py-3 rounded-full text-sm shadow-md transition-all hover:-translate-y-0.5"
+              >
+                Blood Emergency Desk
+              </Link>
             </div>
           </div>
         </div>

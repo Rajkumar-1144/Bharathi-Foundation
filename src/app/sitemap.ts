@@ -7,14 +7,17 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const routes = [
     '',
     '/about',
-    '/donate',
+    '/services',
     '/care-homes',
+    '/activities',
+    '/ngos',
     '/blood-donation',
     '/camps',
     '/gallery',
     '/contact',
-    '/login',
+    '/donate',
     '/register',
+    '/login',
   ];
 
   return routes.map((route) => ({

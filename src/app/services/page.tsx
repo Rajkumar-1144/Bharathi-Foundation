@@ -102,15 +102,45 @@ export default function ServicesPage() {
                     <p className="text-xs font-bold text-emerald-700 bg-emerald-50 p-2 rounded-xl">{srv.metrics}</p>
                     <Link
                       href={srv.link}
-                      className="inline-flex items-center gap-1.5 text-xs font-bold text-brand-primary hover:text-brand-primaryDark"
+                      className="inline-flex items-center gap-1.5 text-xs font-bold text-brand-primary hover:text-brand-primaryDark transition-colors"
                     >
-                      <span>Learn More / Participate</span>
+                      <span>Explore Program & Participate</span>
                       <ArrowRight className="w-3.5 h-3.5" />
                     </Link>
                   </div>
                 </div>
               );
             })}
+          </div>
+
+          {/* Need a Specialized Service Requisition? */}
+          <div className="mt-16 rounded-3xl bg-brand-bgLight/80 border border-brand-border p-8 sm:p-10 flex flex-col md:flex-row items-center justify-between gap-6 shadow-xs">
+            <div className="space-y-1 text-center md:text-left">
+              <span className="text-xs font-bold text-brand-primary uppercase tracking-wider">
+                Community Partnership Desk
+              </span>
+              <h3 className="text-xl sm:text-2xl font-black text-brand-primaryDark font-serif">
+                Request a Medical or Blood Drive in Your Locality
+              </h3>
+              <p className="text-xs sm:text-sm text-brand-muted max-w-xl">
+                Are you an institution, college, resident welfare association, or panchayat body seeking to host a free screening or blood donation drive?
+              </p>
+            </div>
+
+            <div className="flex items-center gap-3 shrink-0">
+              <Link
+                href="/contact"
+                className="bg-brand-primary hover:bg-brand-primaryDark text-white text-xs font-bold px-5 py-3 rounded-full transition-all shadow-xs"
+              >
+                Request a Camp Drive
+              </Link>
+              <Link
+                href="/register?role=NGO"
+                className="bg-white hover:bg-brand-bgLight text-brand-primaryDark text-xs font-bold px-5 py-3 rounded-full border border-brand-border transition-all"
+              >
+                NGO Partnership
+              </Link>
+            </div>
           </div>
         </div>
       </section>

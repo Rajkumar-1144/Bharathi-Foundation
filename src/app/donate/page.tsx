@@ -23,8 +23,11 @@ export default function DonatePage() {
   const [otherPurpose, setOtherPurpose] = useState('');
   const [screenshotPreview, setScreenshotPreview] = useState<string | null>(null);
   const [copiedUpi, setCopiedUpi] = useState(false);
+  const [copiedBank, setCopiedBank] = useState(false);
   const [submittedSuccess, setSubmittedSuccess] = useState<string | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [activePaymentTab, setActivePaymentTab] = useState<'UPI' | 'BANK'>('UPI');
 
   // Synchronized QR Settings from shared database
   const [dbQrSettings, setDbQrSettings] = useState<{
@@ -94,15 +97,60 @@ export default function DonatePage() {
     }
   };
 
+  const handleCopyBank = (text: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedBank(true);
+    setTimeout(() => setCopiedBank(false), 2500);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!amount || !donorName || !donorEmail || !donorPhone || !utrReference) {
-      alert('Please fill in all mandatory fields and provide your 12-digit UPI UTR number.');
+    setFormError(null);
+    setSubmittedSuccess(null);
+
+    const trimmedName = donorName.trim();
+    const trimmedEmail = donorEmail.trim();
+    const trimmedPhone = donorPhone.trim();
+    const trimmedUtr = utrReference.trim().toUpperCase();
+    const trimmedPan = donorPan.trim().toUpperCase();
+
+    if (!amount || !trimmedName || !trimmedEmail || !trimmedPhone || !trimmedUtr) {
+      setFormError('Please fill in all mandatory fields and enter your bank or UPI transaction reference (UTR) number.');
       return;
     }
 
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(trimmedEmail)) {
+      setFormError('Please enter a valid donor email address for receipt delivery.');
+      return;
+    }
+
+    // Phone validation
+    const cleanedPhone = trimmedPhone.replace(/\D/g, '');
+    if (cleanedPhone.length < 10) {
+      setFormError('Please enter a valid 10-digit mobile phone number.');
+      return;
+    }
+
+    // UTR / Transaction Reference validation (alphanumeric, 10 to 22 chars)
+    const utrRegex = /^[A-Z0-9]{10,24}$/;
+    if (!utrRegex.test(trimmedUtr)) {
+      setFormError('Invalid Transaction Reference (UTR). Please enter a valid 12-digit UPI UTR number or banking reference without spaces or symbols.');
+      return;
+    }
+
+    // PAN validation if provided (for 80G Tax Deductibility Certificate)
+    if (trimmedPan) {
+      const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
+      if (!panRegex.test(trimmedPan)) {
+        setFormError('Invalid PAN format. Standard Indian PAN must be 10 characters (e.g. ABCDE1234F).');
+        return;
+      }
+    }
+
     if (purpose === 'Other' && !otherPurpose.trim()) {
-      alert('Please specify your donation purpose.');
+      setFormError('Please specify your custom donation purpose.');
       return;
     }
 
@@ -110,13 +158,13 @@ export default function DonatePage() {
 
     setIsSubmitting(true);
     const newId = submitDonationClaim({
-      donorName,
-      donorEmail,
-      donorPhone,
-      donorPan: donorPan || undefined,
+      donorName: trimmedName,
+      donorEmail: trimmedEmail,
+      donorPhone: trimmedPhone,
+      donorPan: trimmedPan || undefined,
       amount: Number(amount),
-      utrReference: utrReference.trim(),
-      paymentMethod: 'UPI',
+      utrReference: trimmedUtr,
+      paymentMethod: activePaymentTab === 'UPI' ? 'UPI' : 'NET_BANKING',
       campaignTitle,
       purpose: finalPurpose,
       otherPurpose: purpose === 'Other' ? otherPurpose.trim() : undefined,
@@ -124,13 +172,13 @@ export default function DonatePage() {
     });
 
     setSubmittedSuccess(
-      `Your transaction reference #${utrReference} for INR ${Number(amount).toLocaleString(
+      `Your transaction reference #${trimmedUtr} for ₹${Number(amount).toLocaleString(
         'en-IN'
-      )} towards "${finalPurpose}" has been recorded successfully. Status: PENDING VERIFICATION. Once reconciled by our treasury administrator against banking statements, your official 80G tax receipt will be downloadable in your Donor Dashboard.`
+      )} towards "${finalPurpose}" has been recorded under Record ID #${newId}. Status: PENDING VERIFICATION. Once reconciled by our treasury administrator against banking statements, your official 80G tax receipt will be downloadable in your Donor Dashboard.`
     );
     setIsSubmitting(false);
 
-    // Reset form
+    // Reset form inputs
     setUtrReference('');
     setOtherPurpose('');
     setScreenshotPreview(null);
@@ -248,60 +296,146 @@ export default function DonatePage() {
       <section className="py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
-            {/* Left QR Section */}
-            <div className="lg:col-span-5 bg-brand-bgLight rounded-3xl p-8 border border-brand-border text-center space-y-6">
-              {!isQrPublished ? (
-                <div className="p-8 bg-amber-50 rounded-2xl border border-amber-200 text-center space-y-2">
-                  <AlertCircle className="w-8 h-8 text-amber-600 mx-auto" />
-                  <h4 className="font-bold text-amber-900 text-sm">UPI Payments Temporarily Offline</h4>
-                  <p className="text-xs text-amber-700">
-                    Online UPI QR code donations are temporarily paused for scheduled banking reconciliation. Please check back shortly or reach out to our treasury support.
-                  </p>
-                </div>
-              ) : (
+            {/* Left Payment Channel Section (UPI QR + Bank Transfer) */}
+            <div className="lg:col-span-5 bg-brand-bgLight rounded-3xl p-6 sm:p-8 border border-brand-border text-center space-y-6">
+              {/* Payment Mode Selector Tabs */}
+              <div className="inline-flex p-1 bg-white rounded-2xl border border-brand-border w-full">
+                <button
+                  type="button"
+                  onClick={() => setActivePaymentTab('UPI')}
+                  className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer ${
+                    activePaymentTab === 'UPI'
+                      ? 'bg-brand-primary text-white shadow-xs'
+                      : 'text-brand-muted hover:text-brand-text'
+                  }`}
+                >
+                  Scan UPI QR Code
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActivePaymentTab('BANK')}
+                  className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer ${
+                    activePaymentTab === 'BANK'
+                      ? 'bg-brand-primary text-white shadow-xs'
+                      : 'text-brand-muted hover:text-brand-text'
+                  }`}
+                >
+                  Direct Bank (NEFT / IMPS)
+                </button>
+              </div>
+
+              {activePaymentTab === 'UPI' ? (
                 <>
-                  <div className="p-4 bg-white rounded-2xl border border-brand-border shadow-md inline-block">
-                    <div className="w-64 h-64 mx-auto relative flex flex-col items-center justify-center p-3 border-2 border-brand-primary/20 rounded-xl">
-                      <div className="relative w-56 h-56">
-                        <Image
-                          src={activeQrCodeUrl}
-                          alt="Bharathi Foundation UPI QR Code"
-                          fill
-                          className="object-contain"
-                        />
-                      </div>
-                      <div className="absolute inset-x-3 bottom-2 bg-brand-primary text-white py-1 rounded-md text-[10px] font-bold">
-                        SCAN WITH ANY UPI APP
-                      </div>
+                  {!isQrPublished ? (
+                    <div className="p-8 bg-amber-50 rounded-2xl border border-amber-200 text-center space-y-2">
+                      <AlertCircle className="w-8 h-8 text-amber-600 mx-auto" />
+                      <h4 className="font-bold text-amber-900 text-sm">UPI Payments Temporarily Offline</h4>
+                      <p className="text-xs text-amber-700">
+                        Online UPI QR code donations are temporarily paused for scheduled banking reconciliation. Please use Direct Bank Transfer or check back shortly.
+                      </p>
                     </div>
+                  ) : (
+                    <>
+                      <div className="p-4 bg-white rounded-2xl border border-brand-border shadow-md inline-block">
+                        <div className="w-64 h-64 mx-auto relative flex flex-col items-center justify-center p-3 border-2 border-brand-primary/20 rounded-xl">
+                          <div className="relative w-56 h-56">
+                            <Image
+                              src={activeQrCodeUrl}
+                              alt="Bharathi Foundation UPI QR Code"
+                              fill
+                              className="object-contain"
+                            />
+                          </div>
+                          <div className="absolute inset-x-3 bottom-2 bg-brand-primary text-white py-1 rounded-md text-[10px] font-bold">
+                            SCAN WITH ANY UPI APP
+                          </div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <p className="text-xs text-brand-muted font-bold uppercase tracking-wider">Official Foundation UPI ID</p>
+                        <div className="mt-1.5 inline-flex items-center gap-2 bg-white px-5 py-2.5 rounded-xl border border-brand-border shadow-xs">
+                          <span className="font-mono text-base font-bold text-brand-primary">{activeUpiId}</span>
+                          <button
+                            type="button"
+                            onClick={handleCopy}
+                            className="p-1.5 rounded-lg text-brand-muted hover:text-brand-primary hover:bg-brand-bgLight transition-colors"
+                            title="Copy UPI ID"
+                          >
+                            {copiedUpi ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
+                          </button>
+                        </div>
+                        <p className="text-xs text-brand-muted mt-2 font-medium">Account Name: {activeUpiName}</p>
+                        {paymentInstructions && (
+                          <p className="text-xs text-brand-muted mt-1 italic">{paymentInstructions}</p>
+                        )}
+                      </div>
+                    </>
+                  )}
+                </>
+              ) : (
+                /* Bank Account Details Card */
+                <div className="bg-white rounded-2xl p-6 border border-brand-border shadow-sm text-left space-y-4">
+                  <div className="flex items-center justify-between border-b border-brand-border pb-3">
+                    <span className="text-xs font-bold uppercase tracking-wider text-brand-primary">Official Trust Account</span>
+                    <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">Current Account</span>
                   </div>
 
-                  <div>
-                    <p className="text-xs text-brand-muted font-bold uppercase tracking-wider">Official Foundation UPI ID</p>
-                    <div className="mt-1.5 inline-flex items-center gap-2 bg-white px-5 py-2.5 rounded-xl border border-brand-border shadow-xs">
-                      <span className="font-mono text-base font-bold text-brand-primary">{activeUpiId}</span>
+                  <div className="space-y-3 text-xs">
+                    <div>
+                      <span className="text-brand-muted block text-[11px]">Beneficiary Account Name:</span>
+                      <strong className="text-brand-primaryDark font-bold text-sm block">BHARATHI PUBLIC CHARITABLE TRUST</strong>
+                    </div>
+
+                    <div>
+                      <span className="text-brand-muted block text-[11px]">Bank Name:</span>
+                      <strong className="text-brand-text font-bold block">HDFC Bank Limited</strong>
+                    </div>
+
+                    <div className="flex items-center justify-between p-2.5 bg-brand-bgLight rounded-xl border border-brand-border/60">
+                      <div>
+                        <span className="text-brand-muted text-[11px] block">Account Number:</span>
+                        <span className="font-mono font-bold text-brand-text text-sm">50200084729103</span>
+                      </div>
                       <button
-                        onClick={handleCopy}
-                        className="p-1.5 rounded-lg text-brand-muted hover:text-brand-primary hover:bg-brand-bgLight transition-colors"
-                        title="Copy UPI ID"
+                        type="button"
+                        onClick={() => handleCopyBank('50200084729103')}
+                        className="text-xs font-bold text-brand-primary hover:underline flex items-center gap-1"
                       >
-                        {copiedUpi ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
+                        <Copy className="w-3.5 h-3.5" />
+                        <span>{copiedBank ? 'Copied' : 'Copy'}</span>
                       </button>
                     </div>
-                    <p className="text-xs text-brand-muted mt-2 font-medium">Account Name: {activeUpiName}</p>
-                    {paymentInstructions && (
-                      <p className="text-xs text-brand-muted mt-1 italic">{paymentInstructions}</p>
-                    )}
+
+                    <div className="flex items-center justify-between p-2.5 bg-brand-bgLight rounded-xl border border-brand-border/60">
+                      <div>
+                        <span className="text-brand-muted text-[11px] block">IFSC Code:</span>
+                        <span className="font-mono font-bold text-brand-text text-sm">HDFC0001234</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleCopyBank('HDFC0001234')}
+                        className="text-xs font-bold text-brand-primary hover:underline flex items-center gap-1"
+                      >
+                        <Copy className="w-3.5 h-3.5" />
+                        <span>{copiedBank ? 'Copied' : 'Copy'}</span>
+                      </button>
+                    </div>
+
+                    <div>
+                      <span className="text-brand-muted block text-[11px]">Branch:</span>
+                      <span className="text-brand-text font-semibold">Rajajinagar 3rd Cross, Bengaluru - 560010</span>
+                    </div>
                   </div>
-                </>
+                </div>
               )}
 
               <div className="space-y-3 text-left text-xs text-brand-muted border-t border-brand-border/60 pt-4">
                 <p className="font-bold text-brand-text">Simple 3-Step Donation Process:</p>
                 <ol className="space-y-2 list-decimal list-inside leading-relaxed">
-                  <li>Open Google Pay, PhonePe, Paytm, or BHIM and scan the QR code above or enter the UPI ID.</li>
-                  <li>Complete the payment for your desired amount.</li>
-                  <li>Copy the 12-digit UTR / UPI Transaction ID from your payment receipt and submit it here.</li>
+                  <li>Scan the QR code or transfer to the official trust account via your banking app.</li>
+                  <li>Complete the payment for your desired contribution amount.</li>
+                  <li>Copy the 12-digit UTR or banking transaction reference and submit it on the right.</li>
                 </ol>
               </div>
 
@@ -317,6 +451,14 @@ export default function DonatePage() {
               <p className="text-xs text-brand-muted mb-6">
                 Please provide your transaction details so our finance team can verify and issue your Section 80G receipt.
               </p>
+
+              {/* Error Alert */}
+              {formError && (
+                <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-800 text-xs rounded-2xl flex items-center gap-2.5">
+                  <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
+                  <span>{formError}</span>
+                </div>
+              )}
 
               {submittedSuccess && (
                 <div className="mb-6 p-4 bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs rounded-2xl leading-relaxed flex items-start gap-2.5">

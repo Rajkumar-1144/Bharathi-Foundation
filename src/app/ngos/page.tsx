@@ -58,46 +58,63 @@ export default function NGOsPage() {
 
           {/* NGO Partner Directory */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredNGOs.map((ngo) => (
-              <div
-                key={ngo.id}
-                className="p-6 rounded-2xl bg-white border border-brand-border shadow-xs hover:shadow-md transition-all flex flex-col justify-between"
-              >
-                <div>
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full">
-                      <CheckCircle2 className="w-3 h-3" />
-                      Verified Partner
-                    </span>
-                    <span className="text-xs text-brand-muted">Est. {ngo.foundedYear}</span>
+            {filteredNGOs.length === 0 ? (
+              <div className="col-span-full p-12 text-center bg-brand-bgLight rounded-3xl border border-brand-border space-y-3">
+                <Building2 className="w-10 h-10 text-brand-muted mx-auto" />
+                <h4 className="text-base font-bold text-brand-primaryDark">No Partner Organizations Match Your Search</h4>
+                <p className="text-xs text-brand-muted max-w-sm mx-auto">
+                  Try searching for another city or clear your keyword query to view all accredited partner trusts.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setSearchTerm('')}
+                  className="px-4 py-2 bg-brand-primary text-white text-xs font-bold rounded-xl"
+                >
+                  Clear Search
+                </button>
+              </div>
+            ) : (
+              filteredNGOs.map((ngo) => (
+                <div
+                  key={ngo.id}
+                  className="p-6 rounded-2xl bg-white border border-brand-border shadow-xs hover:shadow-md transition-all flex flex-col justify-between"
+                >
+                  <div>
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full">
+                        <CheckCircle2 className="w-3 h-3" />
+                        Verified Partner
+                      </span>
+                      <span className="text-xs text-brand-muted">Est. {ngo.foundedYear}</span>
+                    </div>
+
+                    <h3 className="text-lg font-bold text-brand-primaryDark">{ngo.name}</h3>
+                    <p className="text-xs text-brand-muted mt-1 flex items-center gap-1">
+                      <MapPin className="w-3.5 h-3.5 text-brand-primary shrink-0" />
+                      <span>{ngo.city} • {ngo.address}</span>
+                    </p>
+                    <p className="text-xs text-brand-muted mt-3">
+                      Darpan Portal ID: <strong className="font-mono text-brand-text">{ngo.darpanId}</strong>
+                    </p>
                   </div>
 
-                  <h3 className="text-lg font-bold text-brand-primaryDark">{ngo.name}</h3>
-                  <p className="text-xs text-brand-muted mt-1 flex items-center gap-1">
-                    <MapPin className="w-3.5 h-3.5 text-brand-primary shrink-0" />
-                    <span>{ngo.city} • {ngo.address}</span>
-                  </p>
-                  <p className="text-xs text-brand-muted mt-3">
-                    Darpan Portal ID: <strong className="font-mono text-brand-text">{ngo.darpanId}</strong>
-                  </p>
+                  <div className="pt-4 border-t border-brand-border/60 mt-4 flex items-center justify-between text-xs">
+                    <span className="text-brand-muted font-medium">Contact: {ngo.contactPerson}</span>
+                    {ngo.website && (
+                      <a
+                        href={ngo.website}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-brand-primary font-bold hover:underline flex items-center gap-1"
+                      >
+                        <span>Website</span>
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                    )}
+                  </div>
                 </div>
-
-                <div className="pt-4 border-t border-brand-border/60 mt-4 flex items-center justify-between text-xs">
-                  <span className="text-brand-muted font-medium">Contact: {ngo.contactPerson}</span>
-                  {ngo.website && (
-                    <a
-                      href={ngo.website}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-brand-primary font-bold hover:underline flex items-center gap-1"
-                    >
-                      <span>Website</span>
-                      <ExternalLink className="w-3 h-3" />
-                    </a>
-                  )}
-                </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
 
           {/* Active Collaborative Activities */}

@@ -63,33 +63,50 @@ export default function GalleryPage() {
 
           {/* Photo Masonry Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredPhotos.map((item) => (
-              <div
-                key={item.id}
-                onClick={() => setSelectedImage(item)}
-                className="group relative h-72 rounded-2xl overflow-hidden cursor-pointer shadow-xs border border-brand-border bg-white"
-              >
-                <Image
-                  src={item.imageUrl}
-                  alt={item.title}
-                  fill
-                  className="object-cover group-hover:scale-105 transition-transform duration-300"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-80 group-hover:opacity-95 transition-opacity" />
-
-                <div className="absolute bottom-0 inset-x-0 p-5 text-white">
-                  <span className="text-[10px] font-bold uppercase tracking-wider bg-brand-primary/90 px-2.5 py-0.5 rounded-md">
-                    {item.category.replace('_', ' ')}
-                  </span>
-                  <h4 className="font-bold text-base text-white mt-1.5 line-clamp-1">{item.title}</h4>
-                  <p className="text-xs text-gray-300 line-clamp-1 mt-0.5">{item.location} • {item.date}</p>
-                </div>
-
-                <div className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/80 backdrop-blur-xs text-brand-primary flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Eye className="w-4 h-4" />
-                </div>
+            {filteredPhotos.length === 0 ? (
+              <div className="col-span-full p-12 text-center bg-brand-bgLight rounded-3xl border border-brand-border space-y-3">
+                <Eye className="w-10 h-10 text-brand-muted mx-auto" />
+                <h4 className="text-base font-bold text-brand-primaryDark">No Photos Found in this Category</h4>
+                <p className="text-xs text-brand-muted max-w-sm mx-auto">
+                  New high-resolution field photographs from our blood drives and medical camps are uploaded and verified regularly.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setActiveCategory('ALL')}
+                  className="px-4 py-2 bg-brand-primary text-white text-xs font-bold rounded-xl"
+                >
+                  View All Photos
+                </button>
               </div>
-            ))}
+            ) : (
+              filteredPhotos.map((item) => (
+                <div
+                  key={item.id}
+                  onClick={() => setSelectedImage(item)}
+                  className="group relative h-72 rounded-2xl overflow-hidden cursor-pointer shadow-xs border border-brand-border bg-white"
+                >
+                  <Image
+                    src={item.imageUrl}
+                    alt={item.title}
+                    fill
+                    className="object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-80 group-hover:opacity-95 transition-opacity" />
+
+                  <div className="absolute bottom-0 inset-x-0 p-5 text-white">
+                    <span className="text-[10px] font-bold uppercase tracking-wider bg-brand-primary/90 px-2.5 py-0.5 rounded-md">
+                      {item.category.replace('_', ' ')}
+                    </span>
+                    <h4 className="font-bold text-base text-white mt-1.5 line-clamp-1">{item.title}</h4>
+                    <p className="text-xs text-gray-300 line-clamp-1 mt-0.5">{item.location} • {item.date}</p>
+                  </div>
+
+                  <div className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/80 backdrop-blur-xs text-brand-primary flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Eye className="w-4 h-4" />
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </section>

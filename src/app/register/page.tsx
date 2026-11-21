@@ -135,13 +135,32 @@ export default function RegisterPage() {
     setErrorMsg('');
     setSuccessNotice('');
 
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email.trim())) {
+      setErrorMsg('Please enter a valid email address.');
+      return;
+    }
+
+    // Phone validation
+    const cleanedPhone = phone.replace(/\D/g, '');
+    if (cleanedPhone.length < 10) {
+      setErrorMsg('Please enter a valid 10-digit mobile contact number.');
+      return;
+    }
+
     if (password !== confirmPassword) {
       setErrorMsg('Passwords do not match. Please verify your password entries.');
       return;
     }
 
-    if (password.length < 6) {
-      setErrorMsg('Password must be at least 6 characters long.');
+    if (password.length < 8) {
+      setErrorMsg('Password must be at least 8 characters long.');
+      return;
+    }
+
+    if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(password)) {
+      setErrorMsg('Password must contain at least one uppercase letter, one lowercase letter, and one number for account security.');
       return;
     }
 

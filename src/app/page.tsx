@@ -1318,68 +1318,63 @@ export default function HomePage() {
       </section>
 
       {/* ========================================================================= */}
-      {/* 11. COMMUNITY TESTIMONIALS                                                */}
+      {/* 11. COMMUNITY STORIES & FEEDBACK (Verified & Genuine Records Only)        */}
       {/* ========================================================================= */}
-      <section className="py-24 sm:py-32 bg-white">
-        <div className="max-w-7xl 2xl:max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-12 space-y-16">
-          <div className="text-center max-w-3xl mx-auto space-y-4">
-            <span className="text-xs font-extrabold text-brand-primary uppercase tracking-widest bg-brand-bgLight px-4 py-1.5 rounded-full border border-brand-border">
-              Voices of Trust
+      <section className="py-20 sm:py-28 bg-white border-t border-brand-border/60">
+        <div className="max-w-7xl 2xl:max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-12 space-y-12">
+          <div className="text-center max-w-3xl mx-auto space-y-3">
+            <span className="text-xs font-extrabold text-brand-primary uppercase tracking-widest bg-brand-bgLight px-4 py-1.5 rounded-full border border-brand-border inline-block">
+              Voices of Trust & Accountability
             </span>
             <h2 className="text-3xl sm:text-5xl font-black text-brand-primaryDark font-serif tracking-tight">
-              What Our Community Says
+              Community Voices & Verified Impact
             </h2>
-            <p className="text-base text-brand-muted">
-              Honest testimonials from beneficiaries, medical partners, and regular volunteers.
+            <p className="text-base text-brand-muted leading-relaxed">
+              Bharathi Foundation upholds strict transparency. We publish only verified firsthand accounts from genuine camp participants, hospital attendants, and ground volunteers.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="p-8 rounded-3xl bg-brand-bgLight/60 border border-brand-border space-y-4">
-              <div className="flex gap-1 text-amber-400">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="w-4 h-4 fill-current" />
-                ))}
+          {(websiteContent as any).testimonials && (websiteContent as any).testimonials.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {(websiteContent as any).testimonials.map((t: any) => (
+                <div key={t.id} className="p-8 rounded-3xl bg-brand-bgLight/60 border border-brand-border space-y-4 shadow-xs">
+                  <div className="flex gap-1 text-amber-400">
+                    {[...Array(t.rating || 5)].map((_, i) => (
+                      <Star key={i} className="w-4 h-4 fill-current" />
+                    ))}
+                  </div>
+                  <p className="text-sm text-brand-muted italic leading-relaxed">
+                    &ldquo;{t.quote}&rdquo;
+                  </p>
+                  <div>
+                    <strong className="text-sm text-brand-primaryDark block">{t.name}</strong>
+                    <span className="text-xs text-brand-muted">{t.role}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="max-w-3xl mx-auto p-8 rounded-3xl bg-brand-bgLight/70 border border-brand-border text-center space-y-4">
+              <div className="w-12 h-12 rounded-2xl bg-purple-100 text-brand-primary flex items-center justify-center mx-auto shadow-xs">
+                <Quote className="w-6 h-6" />
               </div>
-              <p className="text-sm text-brand-muted italic leading-relaxed">
-                &ldquo;When my father was in critical surgery at Victoria Hospital, the Bharathi emergency blood helpline mobilized two O-negative donors in under 45 minutes. A true blessing.&rdquo;
+              <h3 className="text-lg font-bold text-brand-primaryDark">
+                Have you received support or volunteered at our medical camps?
+              </h3>
+              <p className="text-xs sm:text-sm text-brand-muted leading-relaxed max-w-xl mx-auto">
+                We believe in publishing 100% authentic community experiences without fabrication. If you have been touched by our blood dispatch, child care homes, or hot meal drives, we invite you to share your genuine feedback with our team.
               </p>
-              <div>
-                <strong className="text-sm text-brand-primaryDark block">Suresh Kumar</strong>
-                <span className="text-xs text-brand-muted">Family Member, Bengaluru</span>
+              <div className="pt-2">
+                <Link
+                  href="/contact"
+                  className="inline-flex items-center gap-2 bg-brand-primary hover:bg-brand-primaryDark text-white text-xs font-bold px-5 py-2.5 rounded-full transition-all shadow-xs"
+                >
+                  <span>Share Your Experience</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
               </div>
             </div>
-
-            <div className="p-8 rounded-3xl bg-brand-bgLight/60 border border-brand-border space-y-4">
-              <div className="flex gap-1 text-amber-400">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="w-4 h-4 fill-current" />
-                ))}
-              </div>
-              <p className="text-sm text-brand-muted italic leading-relaxed">
-                &ldquo;Volunteering at the rural diagnostic camps and elder haven has given my life true meaning. The level of transparency, dignity, and maternal care here is unmatched anywhere.&rdquo;
-              </p>
-              <div>
-                <strong className="text-sm text-brand-primaryDark block">Ananya Sharma</strong>
-                <span className="text-xs text-brand-muted">Registered Ground Volunteer</span>
-              </div>
-            </div>
-
-            <div className="p-8 rounded-3xl bg-brand-bgLight/60 border border-brand-border space-y-4">
-              <div className="flex gap-1 text-amber-400">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="w-4 h-4 fill-current" />
-                ))}
-              </div>
-              <p className="text-sm text-brand-muted italic leading-relaxed">
-                &ldquo;As a partner NGO, our collaboration with Bharathi Foundation has allowed us to deliver nutritious hot meals to 500+ daily wage earners every single weekend without fail.&rdquo;
-              </p>
-              <div>
-                <strong className="text-sm text-brand-primaryDark block">Dr. R. K. Hegde</strong>
-                <span className="text-xs text-brand-muted">Trustee, Karuna Seva Society</span>
-              </div>
-            </div>
-          </div>
+          )}
         </div>
       </section>
 

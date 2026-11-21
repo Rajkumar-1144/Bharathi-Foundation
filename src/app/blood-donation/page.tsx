@@ -124,6 +124,8 @@ export default function BloodDonationPage() {
   const [email, setEmail] = useState('');
   const [city, setCity] = useState('');
   const [location, setLocation] = useState('');
+  const [donorConsent, setDonorConsent] = useState(false);
+  const [donorError, setDonorError] = useState('');
   const [donorSuccessMsg, setDonorSuccessMsg] = useState(false);
 
   // Emergency Blood Request Modal State
@@ -205,15 +207,35 @@ export default function BloodDonationPage() {
 
   const handleRegisterDonor = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !phone || !city) return;
+    setDonorError('');
+
+    const trimmedName = name.trim();
+    const trimmedPhone = phone.trim();
+    const trimmedCity = city.trim();
+
+    if (!trimmedName || !trimmedPhone || !trimmedCity) {
+      setDonorError('Please complete your name, contact phone number, and city.');
+      return;
+    }
+
+    const cleanedPhone = trimmedPhone.replace(/\D/g, '');
+    if (cleanedPhone.length < 10) {
+      setDonorError('Please enter a valid 10-digit mobile contact number.');
+      return;
+    }
+
+    if (!donorConsent) {
+      setDonorError('Please confirm the voluntary donor consent and emergency dispatch pledge.');
+      return;
+    }
 
     registerBloodDonor({
-      name,
+      name: trimmedName,
       bloodGroup,
-      phone,
-      email: email || `${name.toLowerCase().replace(/\s+/g, '')}@donor.org`,
-      city,
-      location: location || city,
+      phone: trimmedPhone,
+      email: email.trim() || `${trimmedName.toLowerCase().replace(/\s+/g, '')}@donor.org`,
+      city: trimmedCity,
+      location: location.trim() || trimmedCity,
       isAvailable: true,
     });
 
@@ -225,6 +247,7 @@ export default function BloodDonationPage() {
       setEmail('');
       setCity('');
       setLocation('');
+      setDonorConsent(false);
     }, 4000);
   };
 
@@ -819,6 +842,13 @@ export default function BloodDonationPage() {
                 </div>
               </div>
 
+              {donorError && (
+                <div className="p-3 bg-red-50 border border-red-200 text-red-800 text-xs rounded-xl flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 text-red-600 shrink-0" />
+                  <span>{donorError}</span>
+                </div>
+              )}
+
               {donorSuccessMsg && (
                 <div className="p-3.5 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs rounded-xl font-medium flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
@@ -901,6 +931,22 @@ export default function BloodDonationPage() {
                       className="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl border border-brand-border focus:ring-2 focus:ring-red-500 outline-hidden"
                     />
                   </div>
+                </div>
+
+                {/* Privacy & Dispatch Consent */}
+                <div className="p-3.5 bg-rose-50/70 border border-rose-200 rounded-xl space-y-1.5 text-xs text-rose-950">
+                  <label className="flex items-start gap-2.5 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      required
+                      checked={donorConsent}
+                      onChange={(e) => setDonorConsent(e.target.checked)}
+                      className="mt-0.5 rounded border-rose-300 text-red-600 focus:ring-red-500 shrink-0"
+                    />
+                    <span className="leading-relaxed">
+                      <strong>Voluntary Donor Consent & Privacy Protection:</strong> I consent to join the voluntary standby donor directory. I understand my direct contact info is protected and masked from the public, and foundation coordinators will dispatch alerts only for verified hospital emergency patient needs.
+                    </span>
+                  </label>
                 </div>
 
                 <button

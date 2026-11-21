@@ -43,6 +43,14 @@ export async function POST(req: Request) {
       );
     }
 
+    const upiRegex = /^[a-zA-Z0-9.\-_]{2,100}@[a-zA-Z]{2,64}$/;
+    if (!upiRegex.test(body.upiId.trim())) {
+      return NextResponse.json(
+        { success: false, error: 'Invalid UPI VPA ID format (must be username@bank, e.g. bharathi@sbi).' },
+        { status: 400 }
+      );
+    }
+
     if (!body.accountHolderName || typeof body.accountHolderName !== 'string') {
       return NextResponse.json(
         { success: false, error: 'Account holder / Trust name is required.' },

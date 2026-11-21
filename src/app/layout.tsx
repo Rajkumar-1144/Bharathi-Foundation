@@ -62,8 +62,49 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'NGO',
+    name: 'Bharathi Foundation',
+    alternateName: 'Bharathi Public Charitable Trust',
+    url: 'https://bharathifoundation.org',
+    logo: 'https://bharathifoundation.org/bharathi_logo.png',
+    description:
+      'Fulfilling a mother’s cherished dream through selfless service: Old Age Havens, Child Care Sanctuary, Emergency Blood Donation Camps, Healthcare, and Satvik Food Relief.',
+    slogan: 'WE LOVE TO SERVE',
+    taxID: '80G & 12A Certified Public Charitable Trust',
+    address: {
+      '@type': 'PostalAddress',
+      streetAddress: 'No. 42, 3rd Cross, Rajajinagar',
+      addressLocality: 'Bengaluru',
+      addressRegion: 'Karnataka',
+      postalCode: '560010',
+      addressCountry: 'IN',
+    },
+    contactPoint: [
+      {
+        '@type': 'ContactPoint',
+        telephone: '+91-98765-43210',
+        contactType: 'emergency',
+        areaServed: 'IN',
+        availableLanguage: ['English', 'Kannada', 'Telugu', 'Hindi'],
+      },
+      {
+        '@type': 'ContactPoint',
+        email: 'contact@bharathifoundation.org',
+        contactType: 'customer support',
+      },
+    ],
+  };
+
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      </head>
       <body className="antialiased selection:bg-brand-secondary/30 selection:text-brand-primaryDark" suppressHydrationWarning>
         <AuthProvider>
           <AppDataProvider>

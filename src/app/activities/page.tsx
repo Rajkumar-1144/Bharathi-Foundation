@@ -207,11 +207,27 @@ export default function ActivitiesPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredActivities.map((act) => (
-              <div
-                key={act.id}
-                className="bg-white rounded-3xl border border-brand-border/80 overflow-hidden shadow-xs hover:shadow-xl hover:border-brand-primary/40 transition-all duration-300 flex flex-col justify-between group"
-              >
+            {filteredActivities.length === 0 ? (
+              <div className="col-span-full p-12 text-center bg-brand-bgLight rounded-3xl border border-brand-border space-y-3">
+                <Layers className="w-10 h-10 text-brand-muted mx-auto" />
+                <h4 className="text-base font-bold text-brand-primaryDark">No Activities Found in this Category</h4>
+                <p className="text-xs text-brand-muted max-w-sm mx-auto">
+                  No public field activities found matching this category filter. Select &ldquo;All Activities&rdquo; to browse all verified operations.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setSelectedCategory('All Activities')}
+                  className="px-4 py-2 bg-brand-primary text-white text-xs font-bold rounded-xl"
+                >
+                  View All Activities
+                </button>
+              </div>
+            ) : (
+              filteredActivities.map((act) => (
+                <div
+                  key={act.id}
+                  className="bg-white rounded-3xl border border-brand-border/80 overflow-hidden shadow-xs hover:shadow-xl hover:border-brand-primary/40 transition-all duration-300 flex flex-col justify-between group"
+                >
                 <div>
                   <div className="relative h-56 w-full overflow-hidden bg-purple-100">
                     <Image
@@ -268,7 +284,8 @@ export default function ActivitiesPage() {
                   </button>
                 </div>
               </div>
-            ))}
+            ))
+          )}
           </div>
         </div>
       </section>
