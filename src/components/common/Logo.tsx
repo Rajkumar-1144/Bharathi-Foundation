@@ -18,14 +18,14 @@ export function Logo({
   href = '/',
 }: LogoProps) {
   const sizeClasses = {
-    sm: 'w-36 h-10',
-    md: 'w-40 sm:w-48 xl:w-48 2xl:w-56 h-11 sm:h-12 xl:h-12 2xl:h-14',
+    sm: 'w-32 sm:w-36 h-9 sm:h-10',
+    md: 'w-36 sm:w-40 xl:w-40 2xl:w-52 h-10 sm:h-11 xl:h-11 2xl:h-14',
     lg: 'w-56 sm:w-64 h-14 sm:h-16',
     xl: 'w-64 sm:w-80 h-16 sm:h-20',
   }[size];
 
   const content = (
-    <div className={`relative ${sizeClasses} transition-transform hover:opacity-95 ${className}`}>
+    <div className={`relative ${sizeClasses} transition-transform hover:opacity-95 shrink-0 ${className}`}>
       <Image
         src="/images/bharathi-logo.png"
         alt="BHARATHI FOUNDATION - WE LOVE TO SERVE"
