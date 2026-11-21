@@ -25,7 +25,7 @@ export function Navbar() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const pathname = usePathname();
   const { currentUser, isAuthenticated, logout } = useAuth();
-  const { language, setLanguage } = useAppData();
+  const { language, setLanguage, websiteContent } = useAppData();
 
   const t = TRANSLATIONS[language] || TRANSLATIONS.en;
 
@@ -88,6 +88,9 @@ export function Navbar() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
+  const helplineDisplay = websiteContent.emergencyPhone || websiteContent.contactPhone || '+91 98765 43210';
+  const cleanHelplineTel = helplineDisplay.split(/[/,]/)[0].replace(/[^+\d]/g, '') || '+919876543210';
+
   return (
     <header className="sticky top-0 z-50 w-full bg-white/95 backdrop-blur-md border-b border-brand-border shadow-xs">
       {/* Top Emergency & Trust Alert Bar */}
@@ -95,7 +98,7 @@ export function Navbar() {
         <div className="w-full max-w-[1680px] mx-auto flex flex-wrap justify-between items-center gap-2">
           <div className="flex items-center gap-2 text-[11px] sm:text-xs">
             <a
-              href="tel:+919876543210"
+              href={`tel:${cleanHelplineTel}`}
               className="bg-red-600 hover:bg-red-700 text-white font-bold px-2.5 py-0.5 rounded-full text-[10px] uppercase tracking-wider animate-pulse flex items-center gap-1 shadow-xs transition-colors cursor-pointer shrink-0"
               title="Click to dial 24/7 Blood SOS Hotline"
             >
@@ -115,12 +118,12 @@ export function Navbar() {
 
           <div className="flex items-center gap-2.5 sm:gap-3 text-[11px] shrink-0">
             <a
-              href="tel:+919876543210"
+              href={`tel:${cleanHelplineTel}`}
               className="flex items-center gap-1.5 text-purple-200 hover:text-white font-bold transition-colors"
               title="Call 24/7 Blood Dispatch Hotline"
             >
               <Phone className="w-3 h-3 text-brand-secondary shrink-0" />
-              <span>24/7 Helpline: +91 98765 43210</span>
+              <span>24/7 Helpline: {helplineDisplay}</span>
             </a>
             <span className="hidden min-[1100px]:inline-block text-brand-secondary font-bold bg-white/10 px-2 py-0.5 rounded text-[10px] xl:text-[11px]">
               80G Tax Exempt Public Trust
@@ -361,11 +364,11 @@ export function Navbar() {
             </Link>
 
             <a
-              href="tel:+919876543210"
+              href={`tel:${cleanHelplineTel}`}
               className="flex items-center justify-center gap-2 w-full bg-red-600 hover:bg-red-700 text-white py-2.5 rounded-xl text-xs font-black shadow-xs transition-colors"
             >
               <Droplet className="w-3.5 h-3.5 fill-white" />
-              <span>Emergency Blood SOS: +91 98765 43210</span>
+              <span>Emergency Blood SOS: {helplineDisplay}</span>
             </a>
 
             {isAuthenticated && currentUser ? (

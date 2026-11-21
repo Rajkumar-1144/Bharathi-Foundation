@@ -109,7 +109,14 @@ function maskDonorName(fullName: string): string {
 }
 
 export default function BloodDonationPage() {
-  const { bloodDonors, camps, bloodRequests, registerBloodDonor, createBloodRequest } = useAppData();
+  const {
+    bloodDonors,
+    camps,
+    bloodRequests,
+    registerBloodDonor,
+    createBloodRequest,
+    websiteContent,
+  } = useAppData();
 
   // Filters State
   const [selectedGroup, setSelectedGroup] = useState('ALL');
@@ -362,11 +369,11 @@ export default function BloodDonationPage() {
           </div>
           <div className="flex items-center gap-2">
             <a
-              href="tel:+919876543210"
+              href={`tel:${(websiteContent.emergencyPhone || websiteContent.contactPhone || '+91 98765 43210').split(/[/,]/)[0].replace(/[^+\d]/g, '')}`}
               className="hidden sm:inline-flex items-center gap-1.5 bg-red-700 hover:bg-red-800 text-white px-3 py-1.5 rounded-full text-xs transition-colors"
             >
               <Phone className="w-3.5 h-3.5" />
-              <span>Dial: +91 98765 43210</span>
+              <span>Dial: {websiteContent.emergencyPhone || websiteContent.contactPhone || '+91 98765 43210'}</span>
             </a>
             <button
               onClick={() => {

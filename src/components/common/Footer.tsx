@@ -15,6 +15,7 @@ import {
   Tent,
   Users,
   Building2,
+  MessageCircle,
 } from 'lucide-react';
 
 export function Footer() {
@@ -147,7 +148,7 @@ export function Footer() {
               <li className="flex items-center gap-2.5">
                 <Phone className="w-4 h-4 text-brand-secondary shrink-0" />
                 <a
-                  href={`tel:${(websiteContent.contactPhone || '+91 98765 43210').replace(/[^+\d]/g, '')}`}
+                  href={`tel:${(websiteContent.contactPhone || '+91 98765 43210').split(/[/,]/)[0].replace(/[^+\d]/g, '')}`}
                   className="hover:text-white transition-colors"
                 >
                   {websiteContent.contactPhone}
@@ -156,10 +157,21 @@ export function Footer() {
               <li className="flex items-center gap-2.5">
                 <Droplet className="w-4 h-4 text-red-400 fill-red-400 shrink-0" />
                 <a
-                  href={`tel:${(websiteContent.emergencyPhone || '+91 98765 43210').replace(/[^+\d]/g, '')}`}
+                  href={`tel:${(websiteContent.emergencyPhone || websiteContent.contactPhone || '+91 98765 43210').split(/[/,]/)[0].replace(/[^+\d]/g, '')}`}
                   className="text-red-200 hover:text-white font-bold transition-colors"
                 >
                   24/7 SOS Helpline: {websiteContent.emergencyPhone || '+91 98765 43210'}
+                </a>
+              </li>
+              <li className="flex items-center gap-2.5">
+                <MessageCircle className="w-4 h-4 text-emerald-400 fill-emerald-400/20 shrink-0" />
+                <a
+                  href={`https://wa.me/${(websiteContent.whatsappPhone || websiteContent.emergencyPhone || '+91 98765 43210').split(/[/,]/)[0].replace(/\D/g, '').length === 10 ? `91${(websiteContent.whatsappPhone || websiteContent.emergencyPhone || '+91 98765 43210').split(/[/,]/)[0].replace(/\D/g, '')}` : (websiteContent.whatsappPhone || websiteContent.emergencyPhone || '+91 98765 43210').split(/[/,]/)[0].replace(/\D/g, '')}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-emerald-300 hover:text-white font-medium transition-colors"
+                >
+                  WhatsApp SOS: {websiteContent.whatsappPhone || websiteContent.emergencyPhone || '+91 98765 43210'}
                 </a>
               </li>
               <li className="flex items-center gap-2.5">

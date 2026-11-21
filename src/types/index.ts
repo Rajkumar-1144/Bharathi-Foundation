@@ -325,6 +325,7 @@ export interface WebsiteContent {
   contactPhone: string;
   contactAddress: string;
   emergencyPhone?: string;
+  whatsappPhone?: string;
   upiId: string;
   upiName: string;
   qrCodeUrl: string;

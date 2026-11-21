@@ -8,9 +8,28 @@ export function FloatingWhatsAppSOS() {
   const { websiteContent } = useAppData();
   const [isExpanded, setIsExpanded] = useState(false);
 
-  // Helpline phone number cleaned for WhatsApp API (defaults to +91 98765 43210)
-  const rawPhone = websiteContent.emergencyPhone || websiteContent.contactPhone || '+91 98765 43210';
-  const whatsappNumber = rawPhone.replace(/\D/g, '').replace(/^0+/, '');
+  // Priority: 1. dedicated whatsappPhone, 2. emergencyPhone, 3. contactPhone, 4. default
+  const rawTarget =
+    websiteContent.whatsappPhone ||
+    websiteContent.emergencyPhone ||
+    websiteContent.contactPhone ||
+    '+91 98765 43210';
+
+  // If there are multiple numbers separated by slash/comma, extract the primary mobile
+  const primaryNumberPart = rawTarget.split(/[/,]/)[0].trim();
+
+  // Clean for WhatsApp wa.me API: digits only with country code
+  let cleanWhatsApp = primaryNumberPart.replace(/\D/g, '');
+  if (cleanWhatsApp.length === 10) {
+    cleanWhatsApp = `91${cleanWhatsApp}`;
+  }
+  if (cleanWhatsApp.length < 10) {
+    cleanWhatsApp = '919876543210';
+  }
+
+  // Emergency voice hotline
+  const callPhone = websiteContent.emergencyPhone || websiteContent.contactPhone || '+91 98765 43210';
+  const cleanCallTel = callPhone.split(/[/,]/)[0].replace(/[^+\d]/g, '') || '+919876543210';
 
   // Pre-filled structured emergency blood request template
   const defaultMessage = `*EMERGENCY BLOOD REQUEST (Bharathi Foundation SOS)*
@@ -25,7 +44,7 @@ Urgency Level: IMMEDIATE / CRITICAL
 Please mobilize nearby voluntary standby donors from your registry.`;
 
   const encodedMessage = encodeURIComponent(defaultMessage);
-  const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodedMessage}`;
+  const whatsappUrl = `https://wa.me/${cleanWhatsApp}?text=${encodedMessage}`;
 
   return (
     <aside aria-label="Emergency Blood SOS Assistance" className="fixed bottom-6 right-6 z-50 flex flex-col items-end pointer-events-auto">
@@ -75,7 +94,7 @@ Please mobilize nearby voluntary standby donors from your registry.`;
               <ArrowRight className="w-3.5 h-3.5" />
             </a>
             <a
-              href={`tel:+${whatsappNumber}`}
+              href={`tel:${cleanCallTel}`}
               className="w-full bg-red-600 hover:bg-red-700 text-white py-2.5 px-4 rounded-xl text-xs font-bold transition-all shadow-xs flex items-center justify-center gap-2 text-center"
             >
               <Droplet className="w-3.5 h-3.5 fill-white" />

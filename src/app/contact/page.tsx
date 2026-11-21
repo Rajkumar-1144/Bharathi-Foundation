@@ -163,12 +163,38 @@ export default function ContactPage() {
                   <div>
                     <h4 className="font-bold text-sm text-red-950">24/7 Emergency Blood Helpline</h4>
                     <p className="text-xs text-red-800 font-bold mt-1">
-                      <a href="tel:+919876543210" className="hover:underline">
-                        {websiteContent.contactPhone || '+91 98765 43210'}
+                      <a
+                        href={`tel:${(websiteContent.emergencyPhone || websiteContent.contactPhone || '+91 98765 43210').split(/[/,]/)[0].replace(/[^+\d]/g, '')}`}
+                        className="hover:underline"
+                      >
+                        {websiteContent.emergencyPhone || websiteContent.contactPhone || '+91 98765 43210'}
                       </a>
                     </p>
                     <p className="text-[11px] text-red-700 mt-0.5">
                       Fast-track voluntary donor matching for trauma & surgery cases.
+                    </p>
+                  </div>
+                </div>
+
+                {/* 24x7 WhatsApp SOS Support */}
+                <div className="p-5 rounded-2xl bg-emerald-50/70 border border-emerald-200 flex items-start gap-4 shadow-2xs">
+                  <div className="w-10 h-10 rounded-xl bg-[#25D366] text-white flex items-center justify-center shrink-0 shadow-xs">
+                    <MessageCircle className="w-5 h-5 fill-white" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-sm text-emerald-950">24/7 Blood SOS WhatsApp Desk</h4>
+                    <p className="text-xs text-emerald-800 font-bold mt-1">
+                      <a
+                        href={`https://wa.me/${(websiteContent.whatsappPhone || websiteContent.emergencyPhone || '+91 98765 43210').split(/[/,]/)[0].replace(/\D/g, '').length === 10 ? `91${(websiteContent.whatsappPhone || websiteContent.emergencyPhone || '+91 98765 43210').split(/[/,]/)[0].replace(/\D/g, '')}` : (websiteContent.whatsappPhone || websiteContent.emergencyPhone || '+91 98765 43210').split(/[/,]/)[0].replace(/\D/g, '')}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="hover:underline text-emerald-900"
+                      >
+                        {websiteContent.whatsappPhone || websiteContent.emergencyPhone || '+91 98765 43210'}
+                      </a>
+                    </p>
+                    <p className="text-[11px] text-emerald-700 mt-0.5">
+                      Direct WhatsApp emergency donor mobilization desk.
                     </p>
                   </div>
                 </div>

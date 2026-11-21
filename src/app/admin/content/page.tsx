@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
@@ -123,6 +123,9 @@ export default function AdminContentManagementPage() {
   const [contactEmail, setContactEmail] = useState(websiteContent.contactEmail);
   const [contactPhone, setContactPhone] = useState(websiteContent.contactPhone);
   const [emergencyPhone, setEmergencyPhone] = useState(websiteContent.emergencyPhone || '+91 98765 43210');
+  const [whatsappPhone, setWhatsappPhone] = useState(
+    websiteContent.whatsappPhone || websiteContent.emergencyPhone || '+91 98765 43210'
+  );
   const [contactAddress, setContactAddress] = useState(websiteContent.contactAddress);
   const [footerDescription, setFooterDescription] = useState(
     websiteContent.footerDescription ||
@@ -132,6 +135,33 @@ export default function AdminContentManagementPage() {
     websiteContent.copyrightText ||
       '© 2026 Bharathi Foundation. All Rights Reserved. Tax exempt under 12A & 80G.'
   );
+
+  // Synchronize local form states whenever websiteContent loads from persistent storage
+  useEffect(() => {
+    if (websiteContent) {
+      setHeroHeading(websiteContent.heroHeading || '');
+      setHeroSubheading(websiteContent.heroSubheading || '');
+      setHeroBgImage(websiteContent.heroBgImage || '');
+      setHeroCta1Text(websiteContent.heroCta1Text || '');
+      setHeroCta1Link(websiteContent.heroCta1Link || '');
+      setHeroCta2Text(websiteContent.heroCta2Text || '');
+      setHeroCta2Link(websiteContent.heroCta2Link || '');
+      setHeroVisible(websiteContent.heroVisible !== false);
+
+      setAboutHeading(websiteContent.aboutHeading || '');
+      setAboutText(websiteContent.aboutText || '');
+      setMissionText(websiteContent.missionText || '');
+      setVisionText(websiteContent.visionText || '');
+
+      setContactEmail(websiteContent.contactEmail || '');
+      setContactPhone(websiteContent.contactPhone || '');
+      setEmergencyPhone(websiteContent.emergencyPhone || '+91 98765 43210');
+      setWhatsappPhone(websiteContent.whatsappPhone || websiteContent.emergencyPhone || '+91 98765 43210');
+      setContactAddress(websiteContent.contactAddress || '');
+      if (websiteContent.footerDescription) setFooterDescription(websiteContent.footerDescription);
+      if (websiteContent.copyrightText) setCopyrightText(websiteContent.copyrightText);
+    }
+  }, [websiteContent]);
 
   // State for Gallery Upload Form
   const [newPhotoUrl, setNewPhotoUrl] = useState('');
@@ -316,12 +346,13 @@ export default function AdminContentManagementPage() {
       contactEmail,
       contactPhone,
       emergencyPhone,
+      whatsappPhone,
       contactAddress,
       footerDescription,
       copyrightText,
     });
-    addAuditLog('UPDATE_FOOTER', 'Admin updated trust helpline numbers, official address, and footer settings.');
-    triggerNotify('Footer and contact settings updated successfully!');
+    addAuditLog('UPDATE_FOOTER', `Admin updated contact details: Primary: ${contactPhone}, Emergency: ${emergencyPhone}, WhatsApp: ${whatsappPhone}`);
+    triggerNotify('Footer, helpline, and WhatsApp numbers updated and published successfully!');
   };
 
   // Handle Gallery Photo Add
@@ -1913,6 +1944,22 @@ export default function AdminContentManagementPage() {
                 />
               </div>
               <div>
+                <label className="block text-xs font-bold text-brand-text mb-1">
+                  Official WhatsApp Helpline Number (with Country Code)
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={whatsappPhone}
+                  onChange={(e) => setWhatsappPhone(e.target.value)}
+                  placeholder="+91 98765 43210"
+                  className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-brand-border focus:ring-2 focus:ring-brand-primary focus:outline-hidden"
+                />
+                <p className="text-[10px] text-brand-muted mt-1">
+                  Powers the floating WhatsApp SOS button, blood desk chat, and instant messaging. Format: +91 98765 43210
+                </p>
+              </div>
+              <div className="sm:col-span-2">
                 <label className="block text-xs font-bold text-brand-text mb-1">Registered Trust Address</label>
                 <input
                   type="text"

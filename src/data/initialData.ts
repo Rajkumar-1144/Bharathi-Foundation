@@ -736,6 +736,7 @@ export const INITIAL_WEBSITE_CONTENT: WebsiteContent = {
   contactEmail: 'contact@bharathifoundation.org',
   contactPhone: '+91 (080) 4123-8899 / +91 98765 43210',
   emergencyPhone: '+91 98765 43210',
+  whatsappPhone: '+91 98765 43210',
   contactAddress: 'Bharathi Foundation Trust Bhavan, #108 Seva Marg, Jayanagar 4th Block, Bengaluru, Karnataka 560011',
   upiId: 'bharathifoundation@upi',
   upiName: 'BHARATHI FOUNDATION TRUST',
