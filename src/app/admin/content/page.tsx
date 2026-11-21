@@ -1,11 +1,11 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
 import { useAppData } from '@/context/AppDataContext';
-import { CMSServiceItem, CMSImpactStory, CMSCampaignItem, GalleryItem, UserRole } from '@/types';
+import { CMSServiceItem, CMSImpactStory, CMSCampaignItem, GalleryItem, UserRole, WebsiteContent } from '@/types';
 import { CMSImageUploader } from '@/components/admin/CMSImageUploader';
 import {
   Globe,
@@ -136,11 +136,16 @@ export default function AdminContentManagementPage() {
       '© 2026 Bharathi Foundation. All Rights Reserved. Tax exempt under 12A & 80G.'
   );
 
-  // Synchronize local form states whenever websiteContent loads from persistent storage
+  // Track whether local form states have completed initial hydration from persistent storage
+  const hasInitializedFromStorage = useRef(false);
+
+  // Synchronize local form states only once on initial mount or when websiteContent is first loaded
   useEffect(() => {
-    if (websiteContent) {
+    if (!hasInitializedFromStorage.current && websiteContent && websiteContent.heroHeading) {
+      hasInitializedFromStorage.current = true;
       setHeroHeading(websiteContent.heroHeading || '');
       setHeroSubheading(websiteContent.heroSubheading || '');
+      setHeroDescription(websiteContent.heroDescription || '');
       setHeroBgImage(websiteContent.heroBgImage || '');
       setHeroCta1Text(websiteContent.heroCta1Text || '');
       setHeroCta1Link(websiteContent.heroCta1Link || '');
@@ -150,8 +155,14 @@ export default function AdminContentManagementPage() {
 
       setAboutHeading(websiteContent.aboutHeading || '');
       setAboutText(websiteContent.aboutText || '');
+      setAboutStory(websiteContent.aboutStory || '');
       setMissionText(websiteContent.missionText || '');
       setVisionText(websiteContent.visionText || '');
+
+      if (websiteContent.statsConfig) setStatsConfig(websiteContent.statsConfig);
+      if (websiteContent.servicesList) setServicesList(websiteContent.servicesList);
+      if (websiteContent.impactStoriesList) setImpactStoriesList(websiteContent.impactStoriesList);
+      if (websiteContent.donationCampaignsList) setCampaignsList(websiteContent.donationCampaignsList);
 
       setContactEmail(websiteContent.contactEmail || '');
       setContactPhone(websiteContent.contactPhone || '');
@@ -382,15 +393,48 @@ export default function AdminContentManagementPage() {
     triggerNotify(`Saved changes for photograph: "${editingPhoto.title}"`);
   };
 
+  // Helper to compile all active form field states
+  const getAllCurrentFormData = (): Partial<WebsiteContent> => ({
+    heroHeading,
+    heroSubheading,
+    heroDescription,
+    heroBgImage,
+    heroCta1Text,
+    heroCta1Link,
+    heroCta2Text,
+    heroCta2Link,
+    heroVisible,
+    aboutHeading,
+    aboutText,
+    aboutStory,
+    missionText,
+    visionText,
+    statsConfig,
+    servicesList,
+    impactStoriesList,
+    donationCampaignsList: campaignsList,
+    contactEmail,
+    contactPhone,
+    emergencyPhone,
+    whatsappPhone,
+    contactAddress,
+    footerDescription,
+    copyrightText,
+  });
+
   // Publish / Draft Handlers
   const handleSaveDraftAction = () => {
-    saveDraft(draftNote || 'Admin manual snapshot');
+    const currentData = getAllCurrentFormData();
+    updateWebsiteContent(currentData);
+    saveDraft(draftNote || 'Admin manual snapshot', currentData);
     setDraftNote('');
     triggerNotify('Draft snapshot saved successfully!', 'info');
   };
 
   const handlePublishLiveAction = () => {
-    publishDraft();
+    const currentData = getAllCurrentFormData();
+    updateWebsiteContent(currentData);
+    publishDraft(undefined, currentData);
     triggerNotify('All approved content is now LIVE on the public website!');
   };
 

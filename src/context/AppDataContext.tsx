@@ -143,8 +143,8 @@ interface AppDataContextType {
 
   // Website Content CMS
   updateWebsiteContent: (updated: Partial<WebsiteContent>) => void;
-  saveDraft: (note: string) => void;
-  publishDraft: (draftId?: string) => void;
+  saveDraft: (note: string, snapshotContent?: Partial<WebsiteContent>) => void;
+  publishDraft: (draftId?: string, overrideContent?: Partial<WebsiteContent>) => void;
   restoreVersion: (version: number) => void;
   addAuditLog: (action: string, details: string) => void;
 
@@ -636,9 +636,11 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
 
   // Website Content CMS
   const updateWebsiteContent = (updated: Partial<WebsiteContent>) => {
-    const merged = { ...websiteContent, ...updated };
+    const currentStored = storageService.getItem<WebsiteContent>(STORAGE_KEYS.WEBSITE_CONTENT, websiteContent || INITIAL_WEBSITE_CONTENT);
+    const merged: WebsiteContent = { ...currentStored, ...updated };
     setWebsiteContent(merged);
     storageService.setItem(STORAGE_KEYS.WEBSITE_CONTENT, merged);
+    return merged;
   };
 
   const addAuditLog = (action: string, details: string) => {
@@ -649,30 +651,41 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
       action,
       details,
     };
-    const currentLogs = websiteContent.auditLogs || [];
-    const updated = [newLog, ...currentLogs];
-    updateWebsiteContent({ auditLogs: updated });
+    const currentStored = storageService.getItem<WebsiteContent>(STORAGE_KEYS.WEBSITE_CONTENT, websiteContent || INITIAL_WEBSITE_CONTENT);
+    const currentLogs = currentStored.auditLogs || [];
+    const updatedLogs = [newLog, ...currentLogs];
+    const merged: WebsiteContent = { ...currentStored, auditLogs: updatedLogs };
+    setWebsiteContent(merged);
+    storageService.setItem(STORAGE_KEYS.WEBSITE_CONTENT, merged);
   };
 
-  const saveDraft = (note: string) => {
+  const saveDraft = (note: string, snapshotContent?: Partial<WebsiteContent>) => {
+    const currentStored = storageService.getItem<WebsiteContent>(STORAGE_KEYS.WEBSITE_CONTENT, websiteContent || INITIAL_WEBSITE_CONTENT);
+    const baseContent: WebsiteContent = snapshotContent ? { ...currentStored, ...snapshotContent } : currentStored;
     const newDraft: CMSDraft = {
       id: `draft-${Date.now()}`,
       savedAt: new Date().toISOString(),
       note: note || 'Draft saved by Administrator',
-      contentSnapshot: { ...websiteContent },
+      contentSnapshot: { ...baseContent },
     };
-    const currentDrafts = websiteContent.drafts || [];
-    updateWebsiteContent({ drafts: [newDraft, ...currentDrafts] });
+    const currentDrafts = baseContent.drafts || [];
+    const updatedContent: WebsiteContent = {
+      ...baseContent,
+      drafts: [newDraft, ...currentDrafts],
+    };
+    setWebsiteContent(updatedContent);
+    storageService.setItem(STORAGE_KEYS.WEBSITE_CONTENT, updatedContent);
     addAuditLog('SAVE_DRAFT', `Created draft: "${note || 'Untitled'}"`);
   };
 
-  const publishDraft = (draftId?: string) => {
+  const publishDraft = (draftId?: string, overrideContent?: Partial<WebsiteContent>) => {
     const timestamp = new Date().toISOString();
-    let contentToPublish = { ...websiteContent };
-    if (draftId && websiteContent.drafts) {
-      const draft = websiteContent.drafts.find((d) => d.id === draftId);
+    const currentStored = storageService.getItem<WebsiteContent>(STORAGE_KEYS.WEBSITE_CONTENT, websiteContent || INITIAL_WEBSITE_CONTENT);
+    let contentToPublish: WebsiteContent = overrideContent ? { ...currentStored, ...overrideContent } : { ...currentStored };
+    if (draftId && contentToPublish.drafts) {
+      const draft = contentToPublish.drafts.find((d) => d.id === draftId);
       if (draft) {
-        contentToPublish = { ...websiteContent, ...draft.contentSnapshot };
+        contentToPublish = { ...contentToPublish, ...draft.contentSnapshot };
       }
     }
     contentToPublish.lastPublishedAt = timestamp;
